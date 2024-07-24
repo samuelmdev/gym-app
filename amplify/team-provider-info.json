@@ -1,0 +1,20 @@
+{
+  "staging": {
+    "awscloudformation": {
+      "AuthRoleName": "amplify-amplify92599f786a2a4-staging-161357-authRole",
+      "UnauthRoleArn": "arn:aws:iam::791986733527:role/amplify-amplify92599f786a2a4-staging-161357-unauthRole",
+      "AuthRoleArn": "arn:aws:iam::791986733527:role/amplify-amplify92599f786a2a4-staging-161357-authRole",
+      "Region": "us-east-2",
+      "DeploymentBucketName": "amplify-amplify92599f786a2a4-staging-161357-deployment",
+      "UnauthRoleName": "amplify-amplify92599f786a2a4-staging-161357-unauthRole",
+      "StackName": "amplify-amplify92599f786a2a4-staging-161357",
+      "StackId": "arn:aws:cloudformation:us-east-2:791986733527:stack/amplify-amplify92599f786a2a4-staging-161357/e47d3390-45bd-11ee-a194-0aebf27f096f",
+      "AmplifyAppId": "dcb7vifjwa7s0"
+    },
+    "categories": {
+      "auth": {
+        "gymtrackerf932fa43": {}
+      }
+    }
+  }
+}
