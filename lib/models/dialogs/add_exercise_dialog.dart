@@ -5,7 +5,8 @@ import '../../providers/exercises_provider.dart';
 import '../../models/set.dart';
 
 class AddExerciseDialog extends StatefulWidget {
-  const AddExerciseDialog({super.key});
+  const AddExerciseDialog({super.key, required this.workoutId});
+  final String workoutId;
 
   @override
   _AddExerciseDialogState createState() => _AddExerciseDialogState();
@@ -25,8 +26,10 @@ class _AddExerciseDialogState extends State<AddExerciseDialog> {
 
   @override
   Widget build(BuildContext context) {
-    List<Exercise> exerciseNames =
-        Provider.of<ExercisesProvider>(context).exercises;
+    final exerciseProvider = Provider.of<ExercisesProvider>(context);
+    final exercises = exerciseProvider.exercises;
+    print(exercises![0].name);
+    print('workoutId: ${widget.workoutId}');
 
     return AlertDialog(
       title: const Text('Add Exercise'),
@@ -36,7 +39,7 @@ class _AddExerciseDialogState extends State<AddExerciseDialog> {
             DropdownButton<Exercise>(
               hint: const Text("Select Exercise"),
               value: selectedExercise,
-              items: exerciseNames.map((Exercise exercise) {
+              items: exercises.map((Exercise exercise) {
                 return DropdownMenuItem<Exercise>(
                   value: exercise,
                   child: Text(exercise.name),
@@ -51,48 +54,50 @@ class _AddExerciseDialogState extends State<AddExerciseDialog> {
                 });
               },
             ),
-            ...sets.map((set) {
-              int index = sets.indexOf(set);
-              return Row(
-                children: [
-                  Expanded(
-                    child: TextField(
-                      decoration: const InputDecoration(labelText: 'Reps'),
-                      keyboardType: TextInputType.number,
-                      onChanged: (value) {
-                        setState(() {
-                          sets[index]['reps'] = value;
-                        });
-                      },
+            if (selectedExercise != null) ...[
+              ...sets.map((set) {
+                int index = sets.indexOf(set);
+                return Row(
+                  children: [
+                    Expanded(
+                      child: TextField(
+                        decoration: const InputDecoration(labelText: 'Reps'),
+                        keyboardType: TextInputType.number,
+                        onChanged: (value) {
+                          setState(() {
+                            sets[index]['reps'] = value;
+                          });
+                        },
+                      ),
                     ),
-                  ),
-                  const SizedBox(width: 10),
-                  Expanded(
-                    child: TextField(
-                      decoration: InputDecoration(
-                          labelText:
-                              '${selectedExercise!.type == 'Bodyweight' ? 'Additional ' : ''}Weight'),
-                      keyboardType: TextInputType.number,
-                      onChanged: (value) {
-                        setState(() {
-                          sets[index]['weight'] = value;
-                        });
-                      },
+                    const SizedBox(width: 10),
+                    Expanded(
+                      child: TextField(
+                        decoration: InputDecoration(
+                            labelText:
+                                '${selectedExercise!.type == 'Bodyweight' ? 'Additional ' : ''}Weight'),
+                        keyboardType: TextInputType.number,
+                        onChanged: (value) {
+                          setState(() {
+                            sets[index]['weight'] = value;
+                          });
+                        },
+                      ),
                     ),
-                  ),
-                ],
-              );
-            }),
-            const SizedBox(height: 10),
-            ElevatedButton.icon(
-              onPressed: () {
-                setState(() {
-                  sets.add({'reps': '', 'weight': ''});
-                });
-              },
-              icon: const Icon(Icons.add),
-              label: const Text('Add Set'),
-            ),
+                  ],
+                );
+              }),
+              const SizedBox(height: 10),
+              ElevatedButton.icon(
+                onPressed: () {
+                  setState(() {
+                    sets.add({'reps': '', 'weight': ''});
+                  });
+                },
+                icon: const Icon(Icons.add),
+                label: const Text('Add Set'),
+              ),
+            ]
           ],
         ),
       ),
@@ -107,32 +112,36 @@ class _AddExerciseDialogState extends State<AddExerciseDialog> {
           child: const Text('Add Exercise'),
           onPressed: () {
             // Handle adding exercise logic here
-            List<int> repsList =
-                sets.map((set) => int.parse(set['reps']!)).toList();
-            List<int>? weightList = sets
-                .map((set) =>
-                    set['weight']!.isNotEmpty ? int.parse(set['weight']!) : 0)
-                .toList();
+            if (selectedExercise != null) {
+              List<int> repsList =
+                  sets.map((set) => int.parse(set['reps']!)).toList();
+              List<int>? weightList = sets
+                  .map((set) =>
+                      set['weight']!.isNotEmpty ? int.parse(set['weight']!) : 0)
+                  .toList();
 
-            Set newSet = Set(
-              id: '',
-              reps: repsList,
-              weight: weightList,
-              singleSetExercisesId: selectedExercise!.id,
-            );
-            Navigator.of(context).pop();
+              Set newSet = Set(
+                id: widget.workoutId,
+                reps: repsList,
+                weight: weightList,
+                singleSetExercisesId: selectedExercise!.id,
+              );
+              Navigator.of(context).pop(newSet);
+            }
           },
         ),
       ],
     );
   }
 }
-
+/*
 Future<void> showAddExerciseDialog(BuildContext context) {
   return showDialog<void>(
     context: context,
     builder: (BuildContext context) {
-      return AddExerciseDialog();
+      return const AddExerciseDialog(
+        workoutId: '',
+      );
     },
   );
-}
+} */

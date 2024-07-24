@@ -144,11 +144,11 @@ class _MyAppState extends State<MyApp> {
               completedWorkout: ModalRoute.of(context)!.settings.arguments
                   as CompletedWorkout,
             ), // Replace with your MyWorkouts screen
-        '/schedule': (context) => ScheduleScreen(),
-        '/workoutsList': (context) => WorkoutsList(),
-        '/planner': (context) => PlannerScreen(),
-        '/progress': (context) => ProgressScreen(),
-        '/profile': (context) => ProfileScreen(),
+        '/schedule': (context) => const ScheduleScreen(),
+        '/workoutsList': (context) => const WorkoutsList(),
+        '/planner': (context) => const PlannerScreen(),
+        '/progress': (context) => const ProgressScreen(),
+        '/profile': (context) => const ProfileScreen(),
       },
     );
   }

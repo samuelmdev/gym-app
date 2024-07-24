@@ -4,7 +4,7 @@ import './models/completed_workout.dart';
 class ReadyWorkoutScreen extends StatelessWidget {
   final CompletedWorkout completedWorkout;
 
-  ReadyWorkoutScreen({required this.completedWorkout});
+  const ReadyWorkoutScreen({super.key, required this.completedWorkout});
 
   @override
   Widget build(BuildContext context) {

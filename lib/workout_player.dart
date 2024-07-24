@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:gym_app/models/set.dart';
+import 'models/dialogs/add_exercise_dialog.dart';
 import 'providers/completed_workout_provider.dart';
 import 'ready_workout_screen.dart';
 import 'services/exercises_service.dart';
@@ -199,6 +200,20 @@ class _WorkoutPlayerState extends State<WorkoutPlayer> {
                                 ),
                                 onPressed: () {
                                   // Handle Add exercise action
+                                  showDialog(
+                                    context: context,
+                                    builder: (BuildContext context) {
+                                      return AddExerciseDialog(
+                                          workoutId: widget.workout.id);
+                                    },
+                                  ).then((newSet) {
+                                    if (newSet != null) {
+                                      // Handle the new set added by the dialog
+                                      setState(() {
+                                        // set.add(newSet);
+                                      });
+                                    }
+                                  });
                                 },
                                 icon: const Icon(Icons.add_rounded,
                                     color: Colors.yellow),

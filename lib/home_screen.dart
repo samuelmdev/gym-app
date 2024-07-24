@@ -2,6 +2,10 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:amplify_flutter/amplify_flutter.dart';
 import 'package:gym_app/models/date.dart';
+import 'package:provider/provider.dart';
+
+import 'providers/exercises_provider.dart';
+import 'providers/workouts_provider.dart';
 
 class HomeScreen extends StatelessWidget {
   const HomeScreen({super.key, required this.username});
@@ -74,6 +78,8 @@ class HomeScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    late String userId;
+
     String formattedDate = CustomDateUtils.formatDate(DateTime.now());
     return Scaffold(
       appBar: AppBar(
@@ -105,7 +111,14 @@ class HomeScreen extends StatelessWidget {
                 } else if (idSnapshot.hasError) {
                   return Center(child: Text('Error: ${idSnapshot.error}'));
                 } else {
-                  final userId = idSnapshot.data!;
+                  userId = idSnapshot.data!;
+
+                  Future.microtask(() => {
+                        Provider.of<ExercisesProvider>(context, listen: false)
+                            .fetchExercises(),
+                        Provider.of<WorkoutsProvider>(context, listen: false)
+                            .fetchWorkouts(userId)
+                      });
                   return Padding(
                     padding: const EdgeInsets.all(16.0),
                     child: Column(
