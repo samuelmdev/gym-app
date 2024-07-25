@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:gym_app/providers/exercises_provider.dart';
+import 'package:gym_app/providers/sets_provider.dart';
 import 'package:provider/provider.dart';
 import 'package:gym_app/models/set.dart';
 import 'models/dialogs/add_exercise_dialog.dart';
@@ -54,9 +56,18 @@ class _WorkoutPlayerState extends State<WorkoutPlayer> {
 
   @override
   Widget build(BuildContext context) {
+    List<Exercise>? exercises = [];
+    List<Set>? sets = [];
     var completedWorkoutProvider =
         Provider.of<CompletedWorkoutProvider>(context);
     var completedWorkout = completedWorkoutProvider.completedWorkout;
+    var exercisesProvider = Provider.of<ExercisesProvider>(context);
+    exercises = exercisesProvider.exercises;
+    var setsProvider = Provider.of<SetsProvider>(context, listen: false);
+    Future.microtask(() => {
+          setsProvider.fetchSets(widget.workout.id),
+        });
+    sets = setsProvider.sets;
     bool isAllExercisesCompleted = false;
 
     return PopScope(

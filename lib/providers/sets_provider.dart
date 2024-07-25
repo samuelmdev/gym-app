@@ -1,13 +1,19 @@
 import 'package:flutter/material.dart';
 import 'package:gym_app/models/set.dart';
 
+import '../services/set_service.dart';
+
 class SetsProvider with ChangeNotifier {
   List<Set> _sets = [];
 
-  List<Set> get exercises => _sets;
+  List<Set> get sets => _sets;
 
-  void setSets(List<Set> sets) {
-    _sets = sets;
-    notifyListeners();
+  Future<void> fetchSets(String workoutId) async {
+    try {
+      _sets = await SetService.listSingleSets(workoutId);
+      notifyListeners();
+    } catch (e) {
+      print('Failed to fetch sets: $e');
+    }
   }
 }
