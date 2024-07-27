@@ -30,10 +30,11 @@ class _AddExerciseModalState extends State<AddExerciseModal> {
     final exercises = exerciseProvider.exercises;
 
     return Padding(
-      padding: const EdgeInsets.all(16.0),
-      child: Wrap(
+      padding: const EdgeInsets.all(20.0),
+      child: Column(
         children: [
           const Text('Add Exercise', style: TextStyle(fontSize: 20)),
+          const SizedBox(height: 20),
           DropdownButton<Exercise>(
             hint: const Text("Select Exercise"),
             value: selectedExercise,
@@ -87,6 +88,14 @@ class _AddExerciseModalState extends State<AddExerciseModal> {
             }),
             const SizedBox(height: 10),
             ElevatedButton.icon(
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.black,
+                foregroundColor: Colors.yellow,
+                shape: RoundedRectangleBorder(
+                  borderRadius:
+                      BorderRadius.circular(8), // slightly rounded edges
+                ),
+              ),
               onPressed: () {
                 setState(() {
                   sets.add({'reps': '', 'weight': ''});
@@ -101,6 +110,14 @@ class _AddExerciseModalState extends State<AddExerciseModal> {
             mainAxisAlignment: MainAxisAlignment.end,
             children: [
               ElevatedButton(
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.black,
+                  foregroundColor: Colors.yellow,
+                  shape: RoundedRectangleBorder(
+                    borderRadius:
+                        BorderRadius.circular(8), // slightly rounded edges
+                  ),
+                ),
                 child: const Text('Cancel'),
                 onPressed: () {
                   Navigator.of(context).pop();
@@ -108,6 +125,12 @@ class _AddExerciseModalState extends State<AddExerciseModal> {
               ),
               const SizedBox(width: 10),
               ElevatedButton(
+                style: ElevatedButton.styleFrom(
+                  shape: RoundedRectangleBorder(
+                    borderRadius:
+                        BorderRadius.circular(8), // slightly rounded edges
+                  ),
+                ),
                 child: const Text('Add Exercise'),
                 onPressed: () {
                   // Handle adding exercise logic here
