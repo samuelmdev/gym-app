@@ -22,7 +22,7 @@ class _WorkoutScreenState extends State<WorkoutScreen> {
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
-    // userId = ModalRoute.of(context)!.settings.arguments as String;
+    userId = ModalRoute.of(context)!.settings.arguments as String;
     // _fetchWorkouts(userId);
   }
 /*
@@ -118,6 +118,7 @@ class _WorkoutScreenState extends State<WorkoutScreen> {
                     label: const Text('START'),
                   ),
                 ),
+                const SizedBox(height: 20),
               ],
             ),
     );

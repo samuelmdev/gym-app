@@ -16,4 +16,8 @@ class SetsProvider with ChangeNotifier {
       print('Failed to fetch sets: $e');
     }
   }
+
+  void addSet(Set set) {
+    sets.add(set);
+  }
 }
