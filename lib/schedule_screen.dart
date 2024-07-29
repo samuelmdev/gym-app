@@ -4,6 +4,8 @@ import 'package:provider/provider.dart';
 import 'providers/workouts_provider.dart';
 
 class ScheduleScreen extends StatefulWidget {
+  const ScheduleScreen({super.key});
+
   @override
   _ScheduleScreenState createState() => _ScheduleScreenState();
 }

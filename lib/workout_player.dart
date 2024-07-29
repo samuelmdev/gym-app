@@ -1,9 +1,10 @@
+import 'package:amplify_flutter/amplify_flutter.dart';
 import 'package:flutter/material.dart';
 import 'package:gym_app/providers/exercises_provider.dart';
 import 'package:gym_app/providers/sets_provider.dart';
 import 'package:provider/provider.dart';
 import 'package:gym_app/models/set.dart';
-import 'models/components/add_exercise_modal.dart';
+import 'components/add_exercise_modal.dart';
 import 'providers/completed_workout_provider.dart';
 import 'ready_workout_screen.dart';
 //import 'services/exercises_service.dart';
@@ -198,7 +199,7 @@ class _WorkoutPlayerState extends State<WorkoutPlayer> {
                           ),
                           subtitle: Text(isCompleted
                               ? '${completedWorkout.sets!.where((sets) => sets.singleSetExercisesId == set.singleSetExercisesId).toList().length} Sets'
-                              : '${set.reps.length} Sets'),
+                              : '${sets.length} Sets'),
                         );
                       },
                     ),
@@ -261,6 +262,13 @@ class _WorkoutPlayerState extends State<WorkoutPlayer> {
                           onPressed: () {
                             if (completedWorkout.exercises?.length ==
                                 sets!.length) {
+                              completedWorkout.stopTimestamp =
+                                  TemporalTimestamp(DateTime.now());
+                              var difference = completedWorkout.stopTimestamp!
+                                      .toSeconds() -
+                                  completedWorkout.startTimestamp!.toSeconds();
+                              completedWorkout.duration =
+                                  Duration(seconds: difference);
                               Navigator.push(
                                 context,
                                 MaterialPageRoute(

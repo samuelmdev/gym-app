@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../providers/workouts_provider.dart';
 import '../providers/exercises_provider.dart';
-import '../providers/sets_provider.dart';
 import '../models/workout.dart';
 import 'models/exercise.dart';
 
@@ -35,7 +34,10 @@ class _WorkoutListState extends State<WorkoutList> {
     int selectedWorkout = 0;
 
     return Scaffold(
-      appBar: AppBar(title: const Text('My Workouts')),
+      appBar: AppBar(
+        title: const Text('My Workouts'),
+        automaticallyImplyLeading: false,
+      ),
       body: workouts.isEmpty
           ? const Center(child: CircularProgressIndicator())
           : Column(children: [

@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:gym_app/models/exercise.dart';
 import 'package:provider/provider.dart';
-import '../../providers/exercises_provider.dart';
-import '../set.dart';
+import '../providers/exercises_provider.dart';
+import '../models/set.dart';
 
 class AddExerciseModal extends StatefulWidget {
   const AddExerciseModal({super.key, required this.workoutId});

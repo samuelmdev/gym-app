@@ -12,9 +12,11 @@ type ReadyWorkout @model @auth(rules: [{allow: public}]) {
   starttimestamp: AWSTimestamp
   endtimestamp: AWSTimestamp
   duration: Int
-  Workout: Workout @hasOne
   User: User @belongsTo
   userID: ID! @index(name: "byUser")
+  workoutID: ID! @index(name: "byWorkout")
+  donesets: Int
+  totalreps: Int
 }
 
 type Exercises @model @auth(rules: [{allow: public}]) {
@@ -38,6 +40,7 @@ type Workout @model @auth(rules: [{allow: public}]) {
   sets: [SingleSet] @hasMany
   type: String!
   ScheduledWorkouts: [ScheduledWorkout] @hasMany(indexName: "byWorkout", fields: ["id"])
+  ReadyWorkouts: [ReadyWorkout] @hasMany(indexName: "byWorkout", fields: ["id"])
 }
 
 type User @model @auth(rules: [{allow: public}]) {
@@ -50,5 +53,4 @@ type User @model @auth(rules: [{allow: public}]) {
   ReadyWorkout: [ReadyWorkout] @hasMany(indexName: "byUser", fields: ["id"])
   bodyweight: Int
   ScheduledWorkouts: [ScheduledWorkout] @hasMany(indexName: "byUser", fields: ["id"])
-}
- 
+} 

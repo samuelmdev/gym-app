@@ -2,14 +2,11 @@
 
 import 'package:amplify_flutter/amplify_flutter.dart';
 import 'workout.dart';
-import 'exercise.dart';
-import 'set.dart';
 
-class CompletedWorkout {
+class ReadyWorkout {
+  final String id;
   final String? userId;
   final Workout? workout;
-  List<Exercise>? exercises;
-  List<Set>? sets;
   bool? workoutEdited;
   TemporalTimestamp? startTimestamp;
   TemporalTimestamp? stopTimestamp;
@@ -19,11 +16,10 @@ class CompletedWorkout {
   int doneSets;
   int totalReps;
 
-  CompletedWorkout({
+  ReadyWorkout({
+    required this.id,
     this.userId,
     this.workout,
-    this.exercises,
-    this.sets,
     this.workoutEdited,
     this.startTimestamp,
     this.stopTimestamp,
@@ -34,13 +30,10 @@ class CompletedWorkout {
     required this.totalReps,
   });
 
-  CompletedWorkout.fromJson(Map<String, dynamic> json)
-      : userId = json['userId'],
+  ReadyWorkout.fromJson(Map<String, dynamic> json)
+      : id = json['id'],
+        userId = json['userId'],
         workout = Workout.fromJson(json['workout']),
-        exercises = (json['exercises'] as List)
-            .map((exercise) => Exercise.fromJson(exercise))
-            .toList(),
-        sets = (json['sets'] as List).map((set) => Set.fromJson(set)).toList(),
         workoutEdited = json['workoutEdited'],
         startTimestamp = TemporalTimestamp.fromSeconds(json['startTimestamp']),
         stopTimestamp = TemporalTimestamp.fromSeconds(json['stopTimestamp']),
@@ -51,10 +44,9 @@ class CompletedWorkout {
         totalReps = json['totalReps'];
 
   Map<String, dynamic> toJson() => {
+        'id': id,
         'userId': userId,
         'workout': workout?.toJson(),
-        'exercises': exercises?.map((exercise) => exercise.toJson()).toList(),
-        'sets': sets?.map((set) => set.toJson()).toList(),
         'workoutEdited': workoutEdited,
         'startTimestamp': startTimestamp?.toSeconds(),
         'stopTimestamp': stopTimestamp?.toSeconds(),
@@ -64,16 +56,4 @@ class CompletedWorkout {
         'doneSets': doneSets,
         'totalReps': totalReps,
       };
-
-  void addExercise(Exercise exercise) {
-    exercises?.add(exercise);
-  }
-
-  void addSet(Set set) {
-    sets?.add(set);
-  }
-
-  Exercise? getExerciseById(String id) {
-    return exercises?.firstWhere((exercise) => exercise.id == id);
-  }
 }
