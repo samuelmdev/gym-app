@@ -155,8 +155,7 @@ class _WorkoutPlayerState extends State<WorkoutPlayer> {
                           exercisesMap = {for (var e in exercises) e.id: e};
                         }
                         Set set = sets![index];
-                        Exercise? exercise =
-                            exercisesMap[set.singleSetExercisesId];
+                        Exercise? exercise = exercisesMap[set.exercisesId];
                         bool isCompleted =
                             completedWorkout.exercises?.contains(exercise) ??
                                 false;
@@ -198,8 +197,8 @@ class _WorkoutPlayerState extends State<WorkoutPlayer> {
                             ),
                           ),
                           subtitle: Text(isCompleted
-                              ? '${completedWorkout.sets!.where((sets) => sets.singleSetExercisesId == set.singleSetExercisesId).toList().length} Sets'
-                              : '${sets.length} Sets'),
+                              ? '${completedWorkout.sets!.where((sets) => sets.exercisesId == set.exercisesId).toList().length} Sets'
+                              : '${sets[index].reps.length} Sets'),
                         );
                       },
                     ),

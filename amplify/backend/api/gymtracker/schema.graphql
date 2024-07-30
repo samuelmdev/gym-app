@@ -1,3 +1,12 @@
+type CompletedWorkout @model @auth(rules: [{allow: public}]) {
+  id: ID!
+  name: String
+  type: String!
+  ReadyWorkout: ReadyWorkout @hasOne
+  SingleSets: [SingleSet] @hasMany(indexName: "byCompletedWorkout", fields: ["id"])
+  userID: ID! @index(name: "byUser")
+}
+
 type ScheduledWorkout @model @auth(rules: [{allow: public}]) {
   id: ID!
   date: AWSDate
@@ -14,7 +23,6 @@ type ReadyWorkout @model @auth(rules: [{allow: public}]) {
   duration: Int
   User: User @belongsTo
   userID: ID! @index(name: "byUser")
-  workoutID: ID! @index(name: "byWorkout")
   donesets: Int
   totalreps: Int
 }
@@ -24,23 +32,25 @@ type Exercises @model @auth(rules: [{allow: public}]) {
   name: String!
   target: String!
   type: String!
+  SingleSets: [SingleSet] @hasMany(indexName: "byExercises", fields: ["id"])
 }
 
 type SingleSet @model @auth(rules: [{allow: public}]) {
   id: ID!
   reps: [Int!]
-  weight: [Int!]
-  Exercises: Exercises @hasOne
+  weight: [Int]
+  completedworkoutID: ID @index(name: "byCompletedWorkout")
+  workoutID: ID @index(name: "byWorkout")
+  exercises: ID @index(name: "byExercises")
 }
 
 type Workout @model @auth(rules: [{allow: public}]) {
   id: ID!
-  belongsTo: User @belongsTo
+  belongsTo: User! @belongsTo
   name: String!
-  sets: [SingleSet] @hasMany
+  sets: [SingleSet] @hasMany(indexName: "byWorkout", fields: ["id"])
   type: String!
   ScheduledWorkouts: [ScheduledWorkout] @hasMany(indexName: "byWorkout", fields: ["id"])
-  ReadyWorkouts: [ReadyWorkout] @hasMany(indexName: "byWorkout", fields: ["id"])
 }
 
 type User @model @auth(rules: [{allow: public}]) {
@@ -53,4 +63,6 @@ type User @model @auth(rules: [{allow: public}]) {
   ReadyWorkout: [ReadyWorkout] @hasMany(indexName: "byUser", fields: ["id"])
   bodyweight: Int
   ScheduledWorkouts: [ScheduledWorkout] @hasMany(indexName: "byUser", fields: ["id"])
-} 
+  CompletedWorkouts: [CompletedWorkout] @hasMany(indexName: "byUser", fields: ["id"])
+}
+ 

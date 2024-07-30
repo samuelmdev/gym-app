@@ -147,7 +147,7 @@ class _AddExerciseModalState extends State<AddExerciseModal> {
                       id: widget.workoutId,
                       reps: repsList,
                       weight: weightList,
-                      singleSetExercisesId: selectedExercise!.id,
+                      exercisesId: selectedExercise!.id,
                     );
                     Navigator.of(context).pop(newSet);
                   }
