@@ -6,10 +6,28 @@ import 'package:provider/provider.dart';
 
 import 'providers/exercises_provider.dart';
 import 'providers/workouts_provider.dart';
+import 'services/auth_service.dart';
 
-class HomeScreen extends StatelessWidget {
-  const HomeScreen({super.key, required this.username});
-  final String username;
+class HomeScreen extends StatefulWidget {
+  @override
+  _HomeScreenState createState() => _HomeScreenState();
+}
+
+class _HomeScreenState extends State<HomeScreen> {
+  String _username = '';
+
+  @override
+  void initState() {
+    super.initState();
+    _getUsername();
+  }
+
+  Future<void> _getUsername() async {
+    String username = await AuthService().getUsername();
+    setState(() {
+      _username = username;
+    });
+  }
 
   Future<String> fetchUserIdByUsername(String email) async {
     String getUserByEmailQuery = '''
@@ -129,7 +147,7 @@ class HomeScreen extends StatelessWidget {
                           style: const TextStyle(fontSize: 16),
                         ),
                         Text(
-                          'Welcome, $username! 🔥',
+                          'Welcome, $_username 🔥',
                           style: const TextStyle(fontSize: 20),
                         ),
                         const SizedBox(height: 20),
@@ -145,8 +163,8 @@ class HomeScreen extends StatelessWidget {
                             borderRadius: BorderRadius.circular(10),
                           ),
                           child: TextButton(
-                            onPressed: () =>
-                                Navigator.of(context).pushNamed('/schedule'),
+                            onPressed: () => Navigator.of(context)
+                                .pushNamed('/schedule', arguments: userId),
                             child: const Center(
                               child: Text(
                                 'Schedule',

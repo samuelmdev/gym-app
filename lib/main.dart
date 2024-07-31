@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:amplify_flutter/amplify_flutter.dart';
 import 'package:amplify_api/amplify_api.dart';
 import 'package:amplify_auth_cognito/amplify_auth_cognito.dart';
+import 'package:gym_app/providers/scheduled_workout_provider.dart';
 import 'package:gym_app/providers/workouts_provider.dart';
 import 'package:gym_app/ready_workout_screen.dart';
 import 'package:gym_app/schedule_screen.dart';
@@ -13,6 +14,7 @@ import 'progress_screen.dart';
 import 'providers/completed_workout_provider.dart';
 import 'providers/exercises_provider.dart';
 import 'providers/sets_provider.dart';
+import 'providers/scheduled_workout_provider.dart';
 import 'services/auth_service.dart';
 import 'workout_screen.dart';
 import 'sign_in_screen.dart';
@@ -34,6 +36,7 @@ void main() async {
         ChangeNotifierProvider(create: (_) => WorkoutsProvider()),
         ChangeNotifierProvider(create: (_) => SetsProvider()),
         ChangeNotifierProvider(create: (_) => CompletedWorkoutProvider()),
+        ChangeNotifierProvider(create: (_) => ScheduledWorkoutsProvider()),
       ],
       child: const MyApp(),
     ),
@@ -61,7 +64,7 @@ class MyApp extends StatefulWidget {
 class _MyAppState extends State<MyApp> {
   bool _isAmplifyConfigured = false;
   bool _isSignedIn = false;
-  late String _username;
+  late String userID;
 
   @override
   void initState() {
@@ -93,10 +96,8 @@ class _MyAppState extends State<MyApp> {
   Future<void> _checkUserSignInStatus() async {
     try {
       await Amplify.Auth.getCurrentUser();
-      String signedInUsername = await AuthService().getUsername();
       setState(() {
         _isSignedIn = true;
-        _username = signedInUsername;
       });
     } catch (e) {
       setState(() {
@@ -129,7 +130,7 @@ class _MyAppState extends State<MyApp> {
       ),
       home: _isAmplifyConfigured
           ? (_isSignedIn
-              ? HomeScreen(username: _username)
+              ? HomeScreen()
               : SignInScreen(authService: AuthService()))
           : const Scaffold(body: Center(child: CircularProgressIndicator())),
       routes: {

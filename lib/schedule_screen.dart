@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-
+import './services/schedule_workout_service.dart';
 import 'providers/workouts_provider.dart';
+import 'providers/scheduled_workout_provider.dart';
 
 class ScheduleScreen extends StatefulWidget {
   const ScheduleScreen({super.key});
@@ -11,10 +12,25 @@ class ScheduleScreen extends StatefulWidget {
 }
 
 class _ScheduleScreenState extends State<ScheduleScreen> {
+  @override
+  void initState() {
+    super.initState();
+    _fetchScheduledWorkouts();
+  }
+
+  void _fetchScheduledWorkouts() async {
+    final scheduledWorkoutProvider =
+        Provider.of<ScheduledWorkoutsProvider>(context, listen: false);
+    await scheduledWorkoutProvider.fetchScheduledWorkouts(userID);
+  }
+
   String? selectedWorkout;
   DateTime? selectedDate;
+  late String userID = ModalRoute.of(context)!.settings.arguments as String;
 
   void _showScheduleModal(BuildContext context) {
+    userID = ModalRoute.of(context)!.settings.arguments as String;
+
     showModalBottomSheet(
       context: context,
       builder: (BuildContext context) {
@@ -39,7 +55,7 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
                 }).toList(),
                 onChanged: (value) {
                   setState(() {
-                    selectedWorkout = value;
+                    selectedWorkout = value!;
                   });
                 },
                 hint: const Text('Choose a workout'),
@@ -70,12 +86,32 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
               const SizedBox(height: 20),
               Center(
                 child: ElevatedButton(
-                  onPressed: () {
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.lightBlue,
+                    foregroundColor: Colors.white,
+                    shape: RoundedRectangleBorder(
+                      borderRadius:
+                          BorderRadius.circular(8), // slightly rounded edges
+                    ),
+                  ),
+                  onPressed: () async {
                     // Handle scheduling logic here
-                    Navigator.pop(context);
+                    try {
+                      await ScheduledWorkoutService.createScheduledWorkout(
+                          date: selectedDate!,
+                          userID: userID,
+                          workoutID: selectedWorkout!);
+                      print('Workout scheduled successfully!');
+                    } catch (e) {
+                      print(e);
+                      Navigator.pop(context);
+                    }
                   },
                   child: const Text('Schedule'),
                 ),
+              ),
+              const SizedBox(
+                height: 20,
               ),
             ],
           ),
@@ -86,8 +122,9 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
 
   @override
   Widget build(BuildContext context) {
+    var scheduledWorkouts =
+        Provider.of<ScheduledWorkoutsProvider>(context).scheduledWorkouts;
     const passedWorkouts = 5; // Placeholder value, replace with real data
-    const scheduledWorkouts = 3; // Placeholder value, replace with real data
 
     return Scaffold(
       appBar: AppBar(
@@ -119,8 +156,6 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
                 Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    const Text('X Passed workouts'),
-                    const SizedBox(width: 8),
                     Container(
                       decoration: BoxDecoration(
                         color: Colors.green,
@@ -135,14 +170,14 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
                         style: TextStyle(color: Colors.white),
                       ),
                     ),
+                    const SizedBox(width: 8),
+                    const Text('Passed workouts'),
                   ],
                 ),
                 const SizedBox(height: 10),
                 Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    const Text('Y Scheduled workouts'),
-                    const SizedBox(width: 8),
                     Container(
                       decoration: BoxDecoration(
                         color: Colors.lightBlue,
@@ -152,11 +187,15 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
                         horizontal: 8,
                         vertical: 4,
                       ),
-                      child: const Text(
-                        '$scheduledWorkouts',
-                        style: TextStyle(color: Colors.white),
+                      child: Text(
+                        scheduledWorkouts.isEmpty
+                            ? '0'
+                            : '${scheduledWorkouts.length}',
+                        style: const TextStyle(color: Colors.white),
                       ),
                     ),
+                    const SizedBox(width: 8),
+                    const Text('Scheduled workouts')
                   ],
                 ),
                 const SizedBox(height: 20),

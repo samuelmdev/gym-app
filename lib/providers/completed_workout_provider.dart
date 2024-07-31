@@ -40,11 +40,13 @@ class CompletedWorkoutProvider extends ChangeNotifier {
 
     var weights = set.weight ?? [];
 
-    _completedWorkout.weightLifted += weights[0];
-    _completedWorkout.doneSets += 1;
-    _completedWorkout.totalReps += set.reps.fold(0, (a, b) => a + b);
-    if (exercise.type == 'Bodyweight') {
-      _completedWorkout.bodyweightReps += set.reps[0];
+    for (var i = 0; i < set.reps.length; i++) {
+      _completedWorkout.weightLifted += weights[i];
+      _completedWorkout.doneSets += 1;
+      _completedWorkout.totalReps += set.reps[i];
+      if (exercise.type == 'Bodyweight') {
+        _completedWorkout.bodyweightReps += set.reps[i];
+      }
     }
 
     notifyListeners();

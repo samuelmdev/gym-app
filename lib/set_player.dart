@@ -176,9 +176,6 @@ class _SetPlayerState extends State<SetPlayer> {
   void markSetAsDone(int index) {
     setState(() {
       completedSets[index] = true;
-      Provider.of<CompletedWorkoutProvider>(context, listen: false)
-          .addSet(widget.exercise!, widget.sets!);
-
       selectedSetIndex = index + 1;
     });
   }
@@ -335,6 +332,9 @@ class _SetPlayerState extends State<SetPlayer> {
                     ),
                   ),
                   onPressed: () {
+                    Provider.of<CompletedWorkoutProvider>(context,
+                            listen: false)
+                        .addSet(widget.exercise!, widget.sets!);
                     Provider.of<CompletedWorkoutProvider>(context,
                             listen: false)
                         .addExercise(widget.exercise!);

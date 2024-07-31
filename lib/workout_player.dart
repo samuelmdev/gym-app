@@ -23,16 +23,12 @@ class WorkoutPlayer extends StatefulWidget {
 }
 
 class _WorkoutPlayerState extends State<WorkoutPlayer> {
-  //late Future<List<Set>> futureSets;
-  //late Future<List<Exercise>> futureExercises;
   Map<String, Exercise> exercisesMap = {};
   bool _setsFetched = false;
 
   @override
   void initState() {
     super.initState();
-    //futureSets = SetService.listSingleSets(widget.workout.id);
-    //futureExercises = ExerciseService.fetchExercises();
   }
 
   Future<bool> _showBackDialog() async {
@@ -74,7 +70,6 @@ class _WorkoutPlayerState extends State<WorkoutPlayer> {
       });
     }
     sets = setsProvider.sets;
-    //bool isAllExercisesCompleted = false;
 
     return PopScope(
       canPop: false,
@@ -95,39 +90,9 @@ class _WorkoutPlayerState extends State<WorkoutPlayer> {
             ),
           ),
         ),
-        body: sets.isEmpty
+        body: !_setsFetched
             ? const Center(child: CircularProgressIndicator())
-            : /* FutureBuilder<List<Exercise>>(
-          future: futureExercises,
-          builder: (context, exerciseSnapshot) {
-            if (exerciseSnapshot.connectionState == ConnectionState.waiting) {
-              return const Center(child: CircularProgressIndicator());
-            } else if (exerciseSnapshot.hasError) {
-              return Center(child: Text('Error: ${exerciseSnapshot.error}'));
-            } else if (!exerciseSnapshot.hasData ||
-                exerciseSnapshot.data!.isEmpty) {
-              return const Center(child: Text('No exercises found'));
-            } else {
-              exercisesMap = {for (var e in exerciseSnapshot.data!) e.id: e};
-
-              return FutureBuilder<List<Set>>(
-                future: futureSets,
-                builder: (context, setSnapshot) {
-                  if (setSnapshot.connectionState == ConnectionState.waiting) {
-                    return const Center(child: CircularProgressIndicator());
-                  } else if (setSnapshot.hasError) {
-                    return Center(child: Text('Error: ${setSnapshot.error}'));
-                  } else if (!setSnapshot.hasData ||
-                      setSnapshot.data!.isEmpty) {
-                    return const Center(child: Text('No sets found'));
-                  } else {
-                    if (isAllExercisesCompleted =
-                        completedWorkout.exercises?.length ==
-                            setSnapshot.data!.length) {
-                      isAllExercisesCompleted = true;
-                    } 
-                    print('completed sets: ${completedWorkout.sets}'); */
-            Column(
+            : Column(
                 children: [
                   Text(
                       '${completedWorkout.exercises?.length ?? 0}/${sets.length} Exercises completed'),

@@ -1,7 +1,9 @@
+import 'package:amplify_flutter/amplify_flutter.dart';
 import 'package:flutter/material.dart';
 import 'package:gym_app/components/grey_container.dart';
 import 'package:gym_app/home_screen.dart';
 import './models/completed_workout.dart';
+import './services/ready_workout_service.dart';
 
 class ReadyWorkoutScreen extends StatelessWidget {
   final CompletedWorkout completedWorkout;
@@ -96,14 +98,47 @@ class ReadyWorkoutScreen extends StatelessWidget {
                           BorderRadius.circular(8), // slightly rounded edges
                     ),
                   ),
-                  onPressed: () => {
-                        Navigator.of(context).pushAndRemoveUntil(
-                            MaterialPageRoute(
-                              builder: (context) =>
-                                  const HomeScreen(username: 'jaska'),
-                            ),
-                            (Route<dynamic> route) => false),
-                      },
+                  onPressed: () async {
+                    TemporalTimestamp defaultTimestamp =
+                        TemporalTimestamp(DateTime.now());
+                    TemporalTimestamp nonNullStartTime =
+                        completedWorkout.startTimestamp ?? defaultTimestamp;
+                    TemporalTimestamp nonNullStopTime =
+                        completedWorkout.startTimestamp ?? defaultTimestamp;
+
+                    try {
+                      // Create ReadyWorkout and get its ID
+                      //  String readyWorkoutId =
+                      await ReadyWorkoutService.createReadyWorkout(
+                        weightLifted: completedWorkout.weightLifted,
+                        bodyWeightReps: completedWorkout.bodyweightReps,
+                        startTimestamp: nonNullStartTime,
+                        endTimestamp: nonNullStopTime,
+                        duration: completedWorkout.duration!.inMinutes.toInt(),
+                        userID: 'user123',
+                        doneSets: completedWorkout.doneSets,
+                        totalReps: completedWorkout.totalReps,
+                      );
+
+                      // Use the ID to create CompletedWorkout
+                      /*
+                      await ReadyWorkoutService.createCompletedWorkout(
+                        name: 'Morning Workout',
+                        type: 'Cardio',
+                        userID: 'user123',
+                        completedWorkoutReadyWorkoutId: readyWorkoutId,
+                      ); */
+
+                      print('Workout successfully created!');
+                    } catch (e) {
+                      print(e);
+                    }
+                    Navigator.of(context).pushAndRemoveUntil(
+                        MaterialPageRoute(
+                          builder: (context) => HomeScreen(),
+                        ),
+                        (Route<dynamic> route) => false);
+                  },
                   child: const Text(
                     'Close summary',
                     style: TextStyle(fontSize: 16),

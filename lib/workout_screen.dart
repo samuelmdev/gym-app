@@ -41,6 +41,7 @@ class _WorkoutScreenState extends State<WorkoutScreen> {
   @override
   Widget build(BuildContext context) {
     List<Workout>? workouts = [];
+    Workout newWorkout = Workout(id: '', name: '', type: '', userId: userId);
     final workoutsProvider = Provider.of<WorkoutsProvider>(context);
     workouts = workoutsProvider.workouts;
     return Scaffold(
@@ -49,14 +50,44 @@ class _WorkoutScreenState extends State<WorkoutScreen> {
           ? const Center(child: CircularProgressIndicator())
           : Column(
               children: [
-                const Padding(
-                  padding: EdgeInsets.all(16.0),
-                  child: Text(
+                Column(children: [
+                  const SizedBox(height: 20),
+                  ElevatedButton(
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.black,
+                      foregroundColor: Colors.yellow,
+                      side: const BorderSide(color: Colors.yellow, width: 2.0),
+                      shape: RoundedRectangleBorder(
+                        borderRadius:
+                            BorderRadius.circular(8), // slightly rounded edges
+                      ),
+                    ),
+                    onPressed: () {
+                      Provider.of<CompletedWorkoutProvider>(context,
+                              listen: false)
+                          .startWorkout(userId, newWorkout);
+                      Navigator.of(context).push(
+                        MaterialPageRoute(
+                          builder: (context) =>
+                              WorkoutPlayer(workout: newWorkout),
+                        ),
+                      );
+                    },
+                    child: const Text('Start new empty'),
+                  ),
+                  const SizedBox(height: 30),
+                  const Text(
+                    'Or',
+                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                    textAlign: TextAlign.center,
+                  ),
+                  const SizedBox(height: 10),
+                  const Text(
                     'Select Workout',
                     style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
                     textAlign: TextAlign.center,
                   ),
-                ),
+                ]),
                 Expanded(
                   child: ListView.builder(
                     itemCount: workouts.length,
