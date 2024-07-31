@@ -2,10 +2,32 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:amplify_flutter/amplify_flutter.dart';
 import 'package:gym_app/models/date.dart';
+import 'package:provider/provider.dart';
 
-class HomeScreen extends StatelessWidget {
-  const HomeScreen({super.key, required this.username});
-  final String username;
+import 'providers/exercises_provider.dart';
+import 'providers/workouts_provider.dart';
+import 'services/auth_service.dart';
+
+class HomeScreen extends StatefulWidget {
+  @override
+  _HomeScreenState createState() => _HomeScreenState();
+}
+
+class _HomeScreenState extends State<HomeScreen> {
+  String _username = '';
+
+  @override
+  void initState() {
+    super.initState();
+    _getUsername();
+  }
+
+  Future<void> _getUsername() async {
+    String username = await AuthService().getUsername();
+    setState(() {
+      _username = username;
+    });
+  }
 
   Future<String> fetchUserIdByUsername(String email) async {
     String getUserByEmailQuery = '''
@@ -74,6 +96,8 @@ class HomeScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    late String userId;
+
     String formattedDate = CustomDateUtils.formatDate(DateTime.now());
     return Scaffold(
       appBar: AppBar(
@@ -105,7 +129,14 @@ class HomeScreen extends StatelessWidget {
                 } else if (idSnapshot.hasError) {
                   return Center(child: Text('Error: ${idSnapshot.error}'));
                 } else {
-                  final userId = idSnapshot.data!;
+                  userId = idSnapshot.data!;
+
+                  Future.microtask(() => {
+                        Provider.of<ExercisesProvider>(context, listen: false)
+                            .fetchExercises(),
+                        Provider.of<WorkoutsProvider>(context, listen: false)
+                            .fetchWorkouts(userId)
+                      });
                   return Padding(
                     padding: const EdgeInsets.all(16.0),
                     child: Column(
@@ -116,7 +147,7 @@ class HomeScreen extends StatelessWidget {
                           style: const TextStyle(fontSize: 16),
                         ),
                         Text(
-                          'Welcome, $username! 🔥',
+                          'Welcome, $_username 🔥',
                           style: const TextStyle(fontSize: 20),
                         ),
                         const SizedBox(height: 20),
@@ -132,8 +163,8 @@ class HomeScreen extends StatelessWidget {
                             borderRadius: BorderRadius.circular(10),
                           ),
                           child: TextButton(
-                            onPressed: () =>
-                                Navigator.of(context).pushNamed('/schedule'),
+                            onPressed: () => Navigator.of(context)
+                                .pushNamed('/schedule', arguments: userId),
                             child: const Center(
                               child: Text(
                                 'Schedule',

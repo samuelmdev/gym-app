@@ -3,7 +3,6 @@
 import 'package:flutter/material.dart';
 import 'home_screen.dart';
 import 'services/auth_service.dart';
-import 'workout_screen.dart';
 
 class SignInScreen extends StatefulWidget {
   final AuthService authService;
@@ -32,7 +31,7 @@ class _SignInScreenState extends State<SignInScreen> {
       });
       Navigator.of(context).pushReplacement(
         MaterialPageRoute(
-          builder: (context) => HomeScreen(username: signedInUserName),
+          builder: (context) => HomeScreen(),
         ),
       );
     } catch (e) {

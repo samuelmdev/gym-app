@@ -2,5 +2,5 @@
   "AppSyncApiName": "gymtracker",
   "DynamoDBBillingMode": "PAY_PER_REQUEST",
   "DynamoDBEnableServerSideEncryption": false,
-  "AuthModeLastUpdated": "2024-06-05T17:02:13.784Z"
+  "AuthModeLastUpdated": "2023-09-15T19:09:08.026Z"
 }

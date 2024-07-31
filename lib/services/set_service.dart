@@ -7,13 +7,14 @@ import '../models/set.dart';
 class SetService {
   static Future<List<Set>> listSingleSets(String workoutId) async {
     String listSetsQuery = '''
-      query ListSingleSets(\$workoutId: ID!) {
-        listSingleSets(filter: {workoutSetsId: {eq: \$workoutId}}) {
+      query ListSingleSets(\$workoutID: ID!) {
+        listSingleSets(filter: {workoutID: {eq: \$workoutID}}) {
           items {
-            workoutSetsId
+            id
             reps
             weight
-            singleSetExercisesId
+            exercises
+            workoutID
           }
         }
       }
@@ -21,7 +22,7 @@ class SetService {
 
     var request = GraphQLRequest<String>(
       document: listSetsQuery,
-      variables: {'workoutId': workoutId},
+      variables: {'workoutID': workoutId},
     );
     print('workoutId: $workoutId'); // Debug statement
 

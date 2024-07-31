@@ -4,25 +4,29 @@ class Set {
   final String id;
   final List<int> reps;
   final List<int>? weight;
-  final String singleSetExercisesId;
+  final String exercisesId;
+  final String? workoutID;
 
   Set({
     required this.id,
     required this.reps,
     this.weight,
-    required this.singleSetExercisesId,
+    required this.exercisesId,
+    this.workoutID,
   });
 
   Set.fromJson(Map<String, dynamic> json)
-      : id = json['workoutSetsId'],
+      : id = json['id'],
         reps = List<int>.from(json['reps'].map((rep) => rep as int)),
         weight = List<int>.from(json['weight'].map((wt) => wt as int)),
-        singleSetExercisesId = json['singleSetExercisesId'];
+        exercisesId = json['exercises'],
+        workoutID = json['workoutID'];
 
   Map<String, dynamic> toJson() => {
-        'workoutSetsId': id,
+        'id': id,
         'reps': reps,
         'weigth': weight,
-        'singleSetExercisesId': singleSetExercisesId,
+        'exercises': exercisesId,
+        'workoutID': workoutID,
       };
 }

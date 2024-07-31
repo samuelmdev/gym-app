@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'providers/completed_workout_provider.dart';
-import 'services/workout_service.dart';
+import 'providers/workouts_provider.dart';
+// import 'services/workout_service.dart';
 import 'workout_player.dart';
 import 'models/workout.dart';
 
@@ -13,8 +14,8 @@ class WorkoutScreen extends StatefulWidget {
 }
 
 class _WorkoutScreenState extends State<WorkoutScreen> {
-  List<Workout> _workouts = [];
-  bool _isLoading = true;
+  // List<Workout> _workouts = [];
+  // bool _isLoading = false;
   Workout? _selectedWorkout;
   late String userId;
 
@@ -22,9 +23,9 @@ class _WorkoutScreenState extends State<WorkoutScreen> {
   void didChangeDependencies() {
     super.didChangeDependencies();
     userId = ModalRoute.of(context)!.settings.arguments as String;
-    _fetchWorkouts(userId);
+    // _fetchWorkouts(userId);
   }
-
+/*
   void _fetchWorkouts(String userId) async {
     try {
       List<Workout> workouts = await WorkoutService.listWorkouts(userId);
@@ -35,27 +36,61 @@ class _WorkoutScreenState extends State<WorkoutScreen> {
     } catch (e) {
       print('Error fetching workouts: $e');
     }
-  }
+  } */
 
   @override
   Widget build(BuildContext context) {
+    List<Workout>? workouts = [];
+    Workout newWorkout = Workout(id: '', name: '', type: '', userId: userId);
+    final workoutsProvider = Provider.of<WorkoutsProvider>(context);
+    workouts = workoutsProvider.workouts;
     return Scaffold(
       appBar: AppBar(title: const Text('Workouts')),
-      body: _isLoading
+      body: workouts!.isEmpty
           ? const Center(child: CircularProgressIndicator())
           : Column(
               children: [
-                const Padding(
-                  padding: EdgeInsets.all(16.0),
-                  child: Text(
+                Column(children: [
+                  const SizedBox(height: 20),
+                  ElevatedButton(
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.black,
+                      foregroundColor: Colors.yellow,
+                      side: const BorderSide(color: Colors.yellow, width: 2.0),
+                      shape: RoundedRectangleBorder(
+                        borderRadius:
+                            BorderRadius.circular(8), // slightly rounded edges
+                      ),
+                    ),
+                    onPressed: () {
+                      Provider.of<CompletedWorkoutProvider>(context,
+                              listen: false)
+                          .startWorkout(userId, newWorkout);
+                      Navigator.of(context).push(
+                        MaterialPageRoute(
+                          builder: (context) =>
+                              WorkoutPlayer(workout: newWorkout),
+                        ),
+                      );
+                    },
+                    child: const Text('Start new empty'),
+                  ),
+                  const SizedBox(height: 30),
+                  const Text(
+                    'Or',
+                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                    textAlign: TextAlign.center,
+                  ),
+                  const SizedBox(height: 10),
+                  const Text(
                     'Select Workout',
                     style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
                     textAlign: TextAlign.center,
                   ),
-                ),
+                ]),
                 Expanded(
                   child: ListView.builder(
-                    itemCount: _workouts.length,
+                    itemCount: workouts.length,
                     itemBuilder: (context, index) {
                       return Padding(
                         padding: const EdgeInsets.symmetric(
@@ -63,17 +98,17 @@ class _WorkoutScreenState extends State<WorkoutScreen> {
                         child: ElevatedButton(
                           onPressed: () {
                             setState(() {
-                              _selectedWorkout = _workouts[index];
+                              _selectedWorkout = workouts![index];
                             });
                           },
                           style: ElevatedButton.styleFrom(
                             foregroundColor:
-                                _selectedWorkout == _workouts[index]
+                                _selectedWorkout == workouts![index]
                                     ? Colors.yellow
                                     : Colors.white,
                             backgroundColor: Colors.black,
                             side: BorderSide(
-                                color: _selectedWorkout == _workouts[index]
+                                color: _selectedWorkout == workouts[index]
                                     ? Colors.yellow
                                     : Colors.transparent,
                                 width: 2.0),
@@ -82,7 +117,7 @@ class _WorkoutScreenState extends State<WorkoutScreen> {
                                   8), // slightly rounded edges
                             ),
                           ),
-                          child: Text(_workouts[index].name),
+                          child: Text(workouts[index].name),
                         ),
                       );
                     },
@@ -114,6 +149,7 @@ class _WorkoutScreenState extends State<WorkoutScreen> {
                     label: const Text('START'),
                   ),
                 ),
+                const SizedBox(height: 20),
               ],
             ),
     );

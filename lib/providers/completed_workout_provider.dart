@@ -6,8 +6,8 @@ import '../models/exercise.dart';
 import '../models/set.dart';
 
 class CompletedWorkoutProvider extends ChangeNotifier {
-  CompletedWorkout _completedWorkout =
-      CompletedWorkout(weightLifted: 0, bodyweightReps: 0, doneSets: 0);
+  CompletedWorkout _completedWorkout = CompletedWorkout(
+      weightLifted: 0, bodyweightReps: 0, doneSets: 0, totalReps: 0);
 
   CompletedWorkout get completedWorkout => _completedWorkout;
 
@@ -25,6 +25,7 @@ class CompletedWorkoutProvider extends ChangeNotifier {
       weightLifted: 0, // Initialize with 0, calculate based on actual data
       bodyweightReps: 0, // Initialize with 0, calculate based on actual data
       doneSets: 0,
+      totalReps: 0,
     );
     notifyListeners();
   }
@@ -39,10 +40,13 @@ class CompletedWorkoutProvider extends ChangeNotifier {
 
     var weights = set.weight ?? [];
 
-    _completedWorkout.weightLifted += weights[0];
-    _completedWorkout.doneSets += 1;
-    if (exercise.type == 'Bodyweight') {
-      _completedWorkout.bodyweightReps += set.reps[0];
+    for (var i = 0; i < set.reps.length; i++) {
+      _completedWorkout.weightLifted += weights[i];
+      _completedWorkout.doneSets += 1;
+      _completedWorkout.totalReps += set.reps[i];
+      if (exercise.type == 'Bodyweight') {
+        _completedWorkout.bodyweightReps += set.reps[i];
+      }
     }
 
     notifyListeners();
