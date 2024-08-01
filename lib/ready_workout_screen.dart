@@ -115,7 +115,7 @@ class ReadyWorkoutScreen extends StatelessWidget {
                         startTimestamp: nonNullStartTime,
                         endTimestamp: nonNullStopTime,
                         duration: completedWorkout.duration!.inMinutes.toInt(),
-                        userID: 'user123',
+                        userID: completedWorkout.userId!,
                         doneSets: completedWorkout.doneSets,
                         totalReps: completedWorkout.totalReps,
                       );

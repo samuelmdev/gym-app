@@ -2,9 +2,11 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:amplify_flutter/amplify_flutter.dart';
 import 'package:gym_app/models/date.dart';
+import 'package:gym_app/providers/ready_workout_provider.dart';
 import 'package:provider/provider.dart';
 
 import 'providers/exercises_provider.dart';
+import 'providers/scheduled_workout_provider.dart';
 import 'providers/workouts_provider.dart';
 import 'services/auth_service.dart';
 
@@ -135,7 +137,13 @@ class _HomeScreenState extends State<HomeScreen> {
                         Provider.of<ExercisesProvider>(context, listen: false)
                             .fetchExercises(),
                         Provider.of<WorkoutsProvider>(context, listen: false)
-                            .fetchWorkouts(userId)
+                            .fetchWorkouts(userId),
+                        Provider.of<ScheduledWorkoutsProvider>(context,
+                                listen: false)
+                            .fetchScheduledWorkouts(userId),
+                        Provider.of<ReadyWorkoutProvider>(context,
+                                listen: false)
+                            .fetchReadyWorkouts(userId),
                       });
                   return Padding(
                     padding: const EdgeInsets.all(16.0),
@@ -143,7 +151,7 @@ class _HomeScreenState extends State<HomeScreen> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          '$formattedDate,',
+                          formattedDate,
                           style: const TextStyle(fontSize: 16),
                         ),
                         Text(

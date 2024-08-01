@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:gym_app/providers/ready_workout_provider.dart';
 import 'package:provider/provider.dart';
 import './services/schedule_workout_service.dart';
 import 'providers/workouts_provider.dart';
@@ -15,7 +16,7 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
   @override
   void initState() {
     super.initState();
-    _fetchScheduledWorkouts();
+    // _fetchScheduledWorkouts();
   }
 
   void _fetchScheduledWorkouts() async {
@@ -102,10 +103,11 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
                           userID: userID,
                           workoutID: selectedWorkout!);
                       print('Workout scheduled successfully!');
+                      _fetchScheduledWorkouts();
                     } catch (e) {
                       print(e);
-                      Navigator.pop(context);
                     }
+                    Navigator.pop(context);
                   },
                   child: const Text('Schedule'),
                 ),
@@ -124,7 +126,8 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
   Widget build(BuildContext context) {
     var scheduledWorkouts =
         Provider.of<ScheduledWorkoutsProvider>(context).scheduledWorkouts;
-    const passedWorkouts = 5; // Placeholder value, replace with real data
+    var passedWorkouts = Provider.of<ReadyWorkoutProvider>(context)
+        .readyWorkouts; // Placeholder value, replace with real data
 
     return Scaffold(
       appBar: AppBar(
@@ -165,9 +168,9 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
                         horizontal: 8,
                         vertical: 4,
                       ),
-                      child: const Text(
-                        '$passedWorkouts',
-                        style: TextStyle(color: Colors.white),
+                      child: Text(
+                        '${passedWorkouts.length}',
+                        style: const TextStyle(color: Colors.white),
                       ),
                     ),
                     const SizedBox(width: 8),

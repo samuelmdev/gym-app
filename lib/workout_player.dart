@@ -163,7 +163,7 @@ class _WorkoutPlayerState extends State<WorkoutPlayer> {
                           ),
                           subtitle: Text(isCompleted
                               ? '${completedWorkout.sets!.where((sets) => sets.exercisesId == set.exercisesId).toList().length} Sets'
-                              : '${sets[index].reps.length} Sets'),
+                              : '${set.reps.length} Sets'),
                         );
                       },
                     ),
