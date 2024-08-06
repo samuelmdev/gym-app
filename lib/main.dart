@@ -131,7 +131,7 @@ class _MyAppState extends State<MyApp> {
       ),
       home: _isAmplifyConfigured
           ? (_isSignedIn
-              ? HomeScreen()
+              ? const HomeScreen()
               : SignInScreen(authService: AuthService()))
           : const Scaffold(body: Center(child: CircularProgressIndicator())),
       routes: {

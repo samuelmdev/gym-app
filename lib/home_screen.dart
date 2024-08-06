@@ -11,6 +11,8 @@ import 'providers/workouts_provider.dart';
 import 'services/auth_service.dart';
 
 class HomeScreen extends StatefulWidget {
+  const HomeScreen({super.key});
+
   @override
   _HomeScreenState createState() => _HomeScreenState();
 }
@@ -167,6 +169,7 @@ class _HomeScreenState extends State<HomeScreen> {
                           height: MediaQuery.of(context).size.height * 0.25,
                           width: double.infinity,
                           decoration: BoxDecoration(
+                            shape: BoxShape.rectangle,
                             color: Colors.grey[800],
                             borderRadius: BorderRadius.circular(10),
                           ),

@@ -95,7 +95,8 @@ class ReadyWorkoutService {
 
   static Future<List<ReadyWorkout>> fetchReadyWorkoutsByUserID(
       String userID) async {
-    String listReadyWorkoutsQuery = '''
+    try {
+      String listReadyWorkoutsQuery = '''
       query ListReadyWorkouts(\$filter: ModelReadyWorkoutFilterInput) {
         listReadyWorkouts(filter: \$filter) {
           items {
@@ -113,26 +114,40 @@ class ReadyWorkoutService {
       }
     ''';
 
-    var request = GraphQLRequest<String>(
-      document: listReadyWorkoutsQuery,
-      variables: {
-        'filter': {
-          'userID': {'eq': userID}
+      var request = GraphQLRequest<String>(
+        document: listReadyWorkoutsQuery,
+        variables: {
+          'filter': {
+            'userID': {'eq': userID}
+          }
+        },
+      );
+
+      var response = await Amplify.API.query(request: request).response;
+
+      if (response.errors.isNotEmpty) {
+        throw Exception('Failed to fetch ready workouts: ${response.errors}');
+      }
+
+      var data =
+          jsonDecode(response.data!)['listReadyWorkouts']['items'] as List;
+      print('Raw ready workout Data: $data'); // Debug statement
+
+      List<ReadyWorkout> workouts = data.map((item) {
+        try {
+          return ReadyWorkout.fromJson(item);
+        } catch (e) {
+          print('Error parsing item: $item\nException: $e');
+          rethrow;
         }
-      },
-    );
+      }).toList();
 
-    var response = await Amplify.API.query(request: request).response;
+      print('ready workouts: $workouts'); // Debug statement
 
-    if (response.errors.isNotEmpty) {
-      throw Exception('Failed to fetch ready workouts: ${response.errors}');
+      return workouts;
+    } catch (e) {
+      print('Error fetching ready workouts: $e');
+      rethrow;
     }
-
-    var data = jsonDecode(response.data!)['listReadyWorkouts']['items'] as List;
-    print('Raw Data: $data'); // Debug statement
-    List<ReadyWorkout> workouts =
-        data.map((item) => ReadyWorkout.fromJson(item)).toList();
-
-    return workouts;
   }
 }

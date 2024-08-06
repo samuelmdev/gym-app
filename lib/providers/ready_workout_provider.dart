@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:gym_app/models/ready_workout.dart';
+import 'package:gym_app/utils/timestamp_extension.dart';
 
 import '../services/ready_workout_service.dart';
 
@@ -32,5 +33,16 @@ class ReadyWorkoutProvider extends ChangeNotifier {
   void clearError() {
     _errorMessage = null;
     notifyListeners();
+  }
+
+  List<ReadyWorkout> getReadyWorkoutsByDate(DateTime date) {
+    print('getReadyWorkoutsByDate called $date');
+    return _readyWorkouts.where((workout) {
+      DateTime startTimestamp = workout.startTimestamp!.toDateTime();
+      print(startTimestamp);
+      return startTimestamp.year == date.year &&
+          startTimestamp.month == date.month &&
+          startTimestamp.day == date.day;
+    }).toList();
   }
 }

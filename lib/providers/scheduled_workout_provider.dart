@@ -31,4 +31,19 @@ class ScheduledWorkoutsProvider extends ChangeNotifier {
     _errorMessage = null;
     notifyListeners();
   }
+
+  // Get scheduled workouts for a given date
+  List<ScheduledWorkout> getScheduledWorkoutsForDate(DateTime date) {
+    String formattedDate = formatDateToAWSDate(date);
+
+    return _scheduledWorkouts.where((workout) {
+      // Compare formattedDate with workout.date
+      return workout.date == formattedDate;
+    }).toList();
+  }
+
+  // Helper method to format DateTime to AWSDate format (YYYY-MM-DD)
+  String formatDateToAWSDate(DateTime date) {
+    return '${date.toUtc().year.toString().padLeft(4, '0')}-${date.toUtc().month.toString().padLeft(2, '0')}-${date.toUtc().day.toString().padLeft(2, '0')}';
+  }
 }

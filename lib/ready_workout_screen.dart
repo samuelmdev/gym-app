@@ -135,7 +135,7 @@ class ReadyWorkoutScreen extends StatelessWidget {
                     }
                     Navigator.of(context).pushAndRemoveUntil(
                         MaterialPageRoute(
-                          builder: (context) => HomeScreen(),
+                          builder: (context) => const HomeScreen(),
                         ),
                         (Route<dynamic> route) => false);
                   },
