@@ -5,16 +5,17 @@ class CustomContainer extends StatelessWidget {
   final String text2;
 
   const CustomContainer({
-    Key? key,
+    super.key,
     required this.text1,
     required this.text2,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {
     return Container(
       decoration: BoxDecoration(
         color: Colors.grey[900], // Background color
+        shape: BoxShape.rectangle,
         borderRadius: BorderRadius.circular(8), // Rounded edges
       ),
       padding: const EdgeInsets.all(

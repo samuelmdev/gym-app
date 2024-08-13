@@ -5,6 +5,7 @@ import 'package:gym_app/providers/sets_provider.dart';
 import 'package:provider/provider.dart';
 import 'package:gym_app/models/set.dart';
 import 'components/add_exercise_modal.dart';
+import 'models/completed_workout.dart';
 import 'providers/completed_workout_provider.dart';
 import 'ready_workout_screen.dart';
 //import 'services/exercises_service.dart';
@@ -12,6 +13,7 @@ import 'ready_workout_screen.dart';
 import 'models/exercise.dart';
 import 'models/workout.dart';
 import './set_player.dart';
+import './components/end_workout_dialog.dart';
 
 class WorkoutPlayer extends StatefulWidget {
   final Workout workout;
@@ -35,8 +37,8 @@ class _WorkoutPlayerState extends State<WorkoutPlayer> {
     return (await showDialog(
           context: context,
           builder: (context) => AlertDialog(
-            title: const Text('End Workout'),
-            content: const Text('Do you want to end the workout?'),
+            title: const Text('Ending Workout'),
+            content: const Text('End the workout without saving?'),
             actions: <Widget>[
               TextButton(
                 onPressed: () => Navigator.of(context).pop(false),
@@ -44,7 +46,7 @@ class _WorkoutPlayerState extends State<WorkoutPlayer> {
               ),
               TextButton(
                 onPressed: () => Navigator.of(context).pop(true),
-                child: const Text('Yes'),
+                child: const Text('End'),
               ),
             ],
           ),
@@ -113,65 +115,76 @@ class _WorkoutPlayerState extends State<WorkoutPlayer> {
                     height: 10,
                   ),
                   Expanded(
-                    child: ListView.builder(
-                      itemCount: sets.length,
-                      itemBuilder: (context, index) {
-                        if (exercises!.isNotEmpty) {
-                          exercisesMap = {for (var e in exercises) e.id: e};
-                        }
-                        Set set = sets![index];
-                        Exercise? exercise = exercisesMap[set.exercisesId];
-                        bool isCompleted =
-                            completedWorkout.exercises?.contains(exercise) ??
+                    child: SingleChildScrollView(
+                      child: Column(children: [
+                        ListView.builder(
+                          shrinkWrap: true,
+                          physics: const NeverScrollableScrollPhysics(),
+                          itemCount: sets.length,
+                          itemBuilder: (context, index) {
+                            if (exercises!.isNotEmpty) {
+                              exercisesMap = {for (var e in exercises) e.id: e};
+                            }
+                            Set set = sets![index];
+                            Exercise? exercise = exercisesMap[set.exercisesId];
+                            bool isCompleted = completedWorkout.sets?.any(
+                                    (completedSet) =>
+                                        completedSet.id == set.id) ??
                                 false;
 
-                        return ListTile(
-                          title: ElevatedButton(
-                            onPressed: isCompleted
-                                ? null
-                                : () {
-                                    Navigator.push(
-                                      context,
-                                      MaterialPageRoute(
-                                        builder: (context) => SetPlayer(
-                                          completedWorkout: completedWorkout,
-                                          exercise: exercise,
-                                          sets: set,
-                                        ),
-                                      ),
-                                    );
-                                  },
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: isCompleted
-                                  ? Colors.green
-                                  : Theme.of(context).primaryColor,
-                              disabledForegroundColor:
-                                  Colors.green.withOpacity(0.9),
-                              disabledBackgroundColor:
-                                  Colors.green.withOpacity(0.4),
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(
-                                    8), // slightly rounded edges
+                            return ListTile(
+                              title: ElevatedButton(
+                                onPressed: isCompleted
+                                    ? null
+                                    : () {
+                                        Navigator.push(
+                                          context,
+                                          MaterialPageRoute(
+                                            builder: (context) => SetPlayer(
+                                              completedWorkout:
+                                                  completedWorkout,
+                                              exercise: exercise,
+                                              sets: set,
+                                            ),
+                                          ),
+                                        );
+                                      },
+                                style: ElevatedButton.styleFrom(
+                                  backgroundColor: isCompleted
+                                      ? Colors.green
+                                      : Theme.of(context).primaryColor,
+                                  disabledForegroundColor:
+                                      Colors.green.withOpacity(0.9),
+                                  disabledBackgroundColor:
+                                      Colors.green.withOpacity(0.4),
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(
+                                        8), // slightly rounded edges
+                                  ),
+                                ),
+                                child: Text(
+                                  exercise?.name ?? 'Unknown Exercise',
+                                  style: const TextStyle(
+                                    fontSize: 16.0,
+                                  ),
+                                ),
                               ),
-                            ),
-                            child: Text(
-                              exercise?.name ?? 'Unknown Exercise',
-                              style: const TextStyle(
-                                fontSize: 16.0,
-                              ),
-                            ),
-                          ),
-                          subtitle: Text(isCompleted
-                              ? '${completedWorkout.sets!.where((sets) => sets.exercisesId == set.exercisesId).toList().length} Sets'
-                              : '${sets[index].reps.length} Sets'),
-                        );
-                      },
+                              subtitle: Text(isCompleted
+                                  ? '${completedWorkout.sets!.where((sets) => sets.exercisesId == set.exercisesId).toList().length} Sets'
+                                  : '${set.reps.length} Sets'),
+                            );
+                          },
+                        ),
+                      ]),
                     ),
                   ),
                   Padding(
                     padding: const EdgeInsets.all(8.0),
                     child: Column(
                       children: [
+                        const SizedBox(
+                          height: 20,
+                        ),
                         ElevatedButton.icon(
                           style: ElevatedButton.styleFrom(
                             backgroundColor: Colors.black,
@@ -214,8 +227,9 @@ class _WorkoutPlayerState extends State<WorkoutPlayer> {
                         ElevatedButton(
                           style: ElevatedButton.styleFrom(
                             backgroundColor:
-                                completedWorkout.exercises?.length ==
-                                        sets.length
+                                (completedWorkout.exercises?.length ==
+                                            sets.length &&
+                                        completedWorkout.exercises!.isNotEmpty)
                                     ? Colors.yellow
                                     : Colors.black,
                             shape: RoundedRectangleBorder(
@@ -224,8 +238,10 @@ class _WorkoutPlayerState extends State<WorkoutPlayer> {
                             ),
                           ),
                           onPressed: () {
-                            if (completedWorkout.exercises?.length ==
-                                sets!.length) {
+                            final remainingExercises = sets!.length -
+                                completedWorkout.exercises!.length;
+                            if (remainingExercises == 0 &&
+                                completedWorkout.exercises!.isNotEmpty) {
                               completedWorkout.stopTimestamp =
                                   TemporalTimestamp(DateTime.now());
                               var difference = completedWorkout.stopTimestamp!
@@ -241,22 +257,36 @@ class _WorkoutPlayerState extends State<WorkoutPlayer> {
                                   ),
                                 ),
                               );
+                            } else if (remainingExercises == sets.length) {
+                              _showBackDialog();
                             } else {
                               // Handle End Workout action if necessary
+                              showDialog(
+                                context: context,
+                                builder: (BuildContext context) {
+                                  return EndWorkoutModal(
+                                    completedWorkout: completedWorkout,
+                                    remainingExercises: remainingExercises,
+                                  );
+                                },
+                              );
                             }
                           },
                           child: Text(
-                            completedWorkout.exercises?.length == sets.length
+                            (completedWorkout.exercises?.length ==
+                                        sets.length &&
+                                    completedWorkout.exercises!.isNotEmpty)
                                 ? 'Workout ready'
                                 : 'End Workout',
                             style: TextStyle(
-                                color: completedWorkout.exercises?.length ==
-                                        sets.length
+                                color: (completedWorkout.exercises?.length ==
+                                            sets.length &&
+                                        completedWorkout.exercises!.isNotEmpty)
                                     ? Colors.black
                                     : Colors.yellow),
                           ),
                         ),
-                        const SizedBox(height: 20.0),
+                        const SizedBox(height: 30.0),
                       ],
                     ),
                   ),

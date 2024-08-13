@@ -24,12 +24,9 @@ class SetService {
       document: listSetsQuery,
       variables: {'workoutID': workoutId},
     );
-    print('workoutId: $workoutId'); // Debug statement
 
     var response = await Amplify.API.query(request: request).response;
-    print('Response: $response'); // Debug statement
     var data = jsonDecode(response.data!);
-    print('Data: $data'); // Debug statement
     List<Set> sets = (data['listSingleSets']['items'] as List)
         .map((item) => Set.fromJson(item))
         .toList();

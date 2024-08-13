@@ -1,14 +1,19 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:amplify_flutter/amplify_flutter.dart';
+import 'package:gym_app/components/dynamic_tiles.dart';
 import 'package:gym_app/models/date.dart';
+import 'package:gym_app/providers/ready_workout_provider.dart';
 import 'package:provider/provider.dart';
 
 import 'providers/exercises_provider.dart';
+import 'providers/scheduled_workout_provider.dart';
 import 'providers/workouts_provider.dart';
 import 'services/auth_service.dart';
 
 class HomeScreen extends StatefulWidget {
+  const HomeScreen({super.key});
+
   @override
   _HomeScreenState createState() => _HomeScreenState();
 }
@@ -135,7 +140,13 @@ class _HomeScreenState extends State<HomeScreen> {
                         Provider.of<ExercisesProvider>(context, listen: false)
                             .fetchExercises(),
                         Provider.of<WorkoutsProvider>(context, listen: false)
-                            .fetchWorkouts(userId)
+                            .fetchWorkouts(userId),
+                        Provider.of<ScheduledWorkoutsProvider>(context,
+                                listen: false)
+                            .fetchScheduledWorkouts(userId),
+                        Provider.of<ReadyWorkoutProvider>(context,
+                                listen: false)
+                            .fetchReadyWorkouts(userId),
                       });
                   return Padding(
                     padding: const EdgeInsets.all(16.0),
@@ -143,38 +154,16 @@ class _HomeScreenState extends State<HomeScreen> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          '$formattedDate,',
+                          formattedDate,
                           style: const TextStyle(fontSize: 16),
                         ),
                         Text(
                           'Welcome, $_username 🔥',
                           style: const TextStyle(fontSize: 20),
                         ),
-                        const SizedBox(height: 20),
-                        const Text(
-                          'Schedule',
-                          style: TextStyle(fontSize: 16),
-                        ),
-                        Container(
-                          height: MediaQuery.of(context).size.height * 0.25,
-                          width: double.infinity,
-                          decoration: BoxDecoration(
-                            color: Colors.grey[800],
-                            borderRadius: BorderRadius.circular(10),
-                          ),
-                          child: TextButton(
-                            onPressed: () => Navigator.of(context)
-                                .pushNamed('/schedule', arguments: userId),
-                            child: const Center(
-                              child: Text(
-                                'Schedule',
-                                style: TextStyle(
-                                    fontSize: 18, color: Colors.white),
-                              ),
-                            ),
-                          ),
-                        ),
-                        const SizedBox(height: 10),
+                        const SizedBox(height: 40),
+                        DynamicTiles(),
+                        const SizedBox(height: 40),
                         Column(
                           children: [
                             ElevatedButton.icon(
@@ -198,29 +187,6 @@ class _HomeScreenState extends State<HomeScreen> {
                                 color: Colors.yellow,
                               ),
                               label: const Text('PLANNER'),
-                            ),
-                            const SizedBox(height: 40),
-                            ElevatedButton.icon(
-                              onPressed: () =>
-                                  Navigator.of(context).pushNamed('/progress'),
-                              style: ElevatedButton.styleFrom(
-                                foregroundColor: Colors.yellow,
-                                backgroundColor: Colors.black,
-                                side: const BorderSide(
-                                    color: Colors.yellow, width: 2),
-                                padding:
-                                    const EdgeInsets.symmetric(vertical: 20),
-                                minimumSize: const Size(double.infinity, 50),
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(
-                                      8), // slightly rounded edges
-                                ),
-                              ),
-                              icon: const Icon(
-                                Icons.show_chart,
-                                color: Colors.yellow,
-                              ),
-                              label: const Text('Progress'),
                             ),
                             const SizedBox(height: 10),
                             ElevatedButton.icon(

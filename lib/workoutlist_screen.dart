@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import '../providers/workouts_provider.dart';
-import '../providers/exercises_provider.dart';
+import '../models/exercise.dart';
+import '../models/set.dart';
 import '../models/workout.dart';
-import 'models/exercise.dart';
+import '../providers/exercises_provider.dart';
+import '../providers/sets_provider.dart';
+import '../providers/workouts_provider.dart';
 
 class WorkoutList extends StatefulWidget {
   const WorkoutList({super.key});
@@ -15,7 +17,8 @@ class WorkoutList extends StatefulWidget {
 class _WorkoutListState extends State<WorkoutList> {
   List<Workout> workouts = [];
   List<Exercise> exercises = [];
-  List<Set> sets = [];
+  int? selectedWorkoutIndex;
+  Map<String, List<Set>> workoutSets = {}; // Cache for fetched sets
 
   @override
   void initState() {
@@ -29,14 +32,20 @@ class _WorkoutListState extends State<WorkoutList> {
     exercises = exercisesProvider.exercises!; // Fetch exercises
   }
 
+  // Function to fetch sets for a workout
+  Future<void> _fetchSetsForWorkout(String workoutId) async {
+    final setsProvider = Provider.of<SetsProvider>(context, listen: false);
+    setsProvider.fetchSets(workoutId);
+    setState(() {
+      workoutSets[workoutId] = setsProvider.sets;
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
-    int selectedWorkout = 0;
-
     return Scaffold(
       appBar: AppBar(
         title: const Text('My Workouts'),
-        automaticallyImplyLeading: false,
       ),
       body: workouts.isEmpty
           ? const Center(child: CircularProgressIndicator())
@@ -53,45 +62,137 @@ class _WorkoutListState extends State<WorkoutList> {
                 child: ListView.builder(
                   itemCount: workouts.length,
                   itemBuilder: (context, index) {
-                    bool isSelected = selectedWorkout == index;
+                    bool isSelected = selectedWorkoutIndex == index;
+                    Workout workout = workouts[index];
 
                     return Padding(
                       padding: const EdgeInsets.symmetric(
                           horizontal: 16.0, vertical: 8.0),
-                      child: ElevatedButton(
-                        onPressed: () {
-                          setState(() {
-                            selectedWorkout = (isSelected ? null : index)!;
-                          });
-                        },
-                        style: ElevatedButton.styleFrom(
-                          foregroundColor: selectedWorkout == workouts[index]
-                              ? Colors.yellow
-                              : Colors.white,
-                          backgroundColor: Colors.black,
-                          side: BorderSide(
-                              color: selectedWorkout == workouts[index]
-                                  ? Colors.yellow
-                                  : Colors.transparent,
-                              width: 2.0),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(
-                                8), // slightly rounded edges
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          ElevatedButton(
+                            onPressed: () {
+                              setState(() {
+                                if (selectedWorkoutIndex == index) {
+                                  selectedWorkoutIndex = null;
+                                } else {
+                                  selectedWorkoutIndex = index;
+                                  _fetchSetsForWorkout(workout.id);
+                                }
+                              });
+                            },
+                            style: ElevatedButton.styleFrom(
+                              foregroundColor:
+                                  isSelected ? Colors.yellow : Colors.white,
+                              backgroundColor: Colors.black,
+                              side: BorderSide(
+                                  color: isSelected
+                                      ? Colors.yellow
+                                      : Colors.transparent,
+                                  width: 2.0),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(8),
+                              ),
+                            ),
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                Text(
+                                  workout.name,
+                                  style: const TextStyle(fontSize: 16),
+                                ),
+                                Icon(
+                                  isSelected
+                                      ? Icons.expand_less
+                                      : Icons.expand_more,
+                                  color: Colors.yellow,
+                                ),
+                              ],
+                            ),
                           ),
-                        ),
-                        child: Row(
-                          children: [
-                            Text(workouts[index].name),
-                            if (isSelected) ...[
-                              ElevatedButton(
-                                  onPressed: () => {},
-                                  child: const Icon(
-                                    Icons.arrow_downward_outlined,
-                                    color: Colors.yellow,
-                                  ))
-                            ]
-                          ],
-                        ),
+                          if (isSelected) ...[
+                            Padding(
+                              padding: const EdgeInsets.symmetric(
+                                  vertical: 8.0, horizontal: 8.0),
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  const Text(
+                                    'Exercises:',
+                                    style: TextStyle(
+                                        fontWeight: FontWeight.bold,
+                                        color: Colors.white),
+                                  ),
+                                  ..._buildExerciseList(workout),
+                                  const SizedBox(height: 10),
+                                  Row(
+                                    mainAxisAlignment:
+                                        MainAxisAlignment.spaceAround,
+                                    children: [
+                                      TextButton(
+                                        onPressed: () {
+                                          // Schedule button logic
+                                        },
+                                        style: TextButton.styleFrom(
+                                          backgroundColor: Colors.grey[900],
+                                          padding: const EdgeInsets.symmetric(
+                                              vertical: 10.0, horizontal: 20.0),
+                                          shape: RoundedRectangleBorder(
+                                            borderRadius:
+                                                BorderRadius.circular(8),
+                                          ),
+                                        ),
+                                        child: const Text(
+                                          'Schedule',
+                                          style: TextStyle(
+                                              color: Colors.lightBlue),
+                                        ),
+                                      ),
+                                      TextButton(
+                                        onPressed: () {
+                                          // Edit button logic
+                                        },
+                                        style: TextButton.styleFrom(
+                                          backgroundColor: Colors.grey[900],
+                                          padding: const EdgeInsets.symmetric(
+                                              vertical: 10.0, horizontal: 20.0),
+                                          shape: RoundedRectangleBorder(
+                                            borderRadius:
+                                                BorderRadius.circular(8),
+                                          ),
+                                        ),
+                                        child: const Text(
+                                          'Edit',
+                                          style:
+                                              TextStyle(color: Colors.yellow),
+                                        ),
+                                      ),
+                                      TextButton(
+                                        onPressed: () {
+                                          // Delete button logic
+                                        },
+                                        style: TextButton.styleFrom(
+                                          backgroundColor: Colors.grey[900],
+                                          padding: const EdgeInsets.symmetric(
+                                              vertical: 10.0, horizontal: 20.0),
+                                          shape: RoundedRectangleBorder(
+                                            borderRadius:
+                                                BorderRadius.circular(8),
+                                          ),
+                                        ),
+                                        child: const Text(
+                                          'Delete',
+                                          style: TextStyle(color: Colors.red),
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ]
+                        ],
                       ),
                     );
                   },
@@ -99,5 +200,23 @@ class _WorkoutListState extends State<WorkoutList> {
               ),
             ]),
     );
+  }
+
+  List<Widget> _buildExerciseList(Workout workout) {
+    List<Exercise> workoutExercises = exercises.where((exercise) {
+      return workoutSets[workout.id]
+              ?.any((set) => set.exercisesId == exercise.id) ??
+          false;
+    }).toList();
+
+    workoutExercises.sort((a, b) => a.name.compareTo(b.name));
+
+    return workoutExercises.map((exercise) {
+      return ListTile(
+        title: Text(exercise.name),
+        subtitle: Text(
+            'Sets: ${workoutSets[workout.id]?.where((set) => set.exercisesId == exercise.id).length ?? 0}'),
+      );
+    }).toList();
   }
 }

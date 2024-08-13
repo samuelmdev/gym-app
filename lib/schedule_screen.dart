@@ -1,8 +1,13 @@
 import 'package:flutter/material.dart';
+import 'package:gym_app/models/ready_workout.dart';
+import 'package:gym_app/models/scheduled_workout.dart';
+import 'package:gym_app/providers/ready_workout_provider.dart';
 import 'package:provider/provider.dart';
 import './services/schedule_workout_service.dart';
 import 'providers/workouts_provider.dart';
 import 'providers/scheduled_workout_provider.dart';
+import 'package:table_calendar/table_calendar.dart';
+import 'package:gym_app/models/date.dart';
 
 class ScheduleScreen extends StatefulWidget {
   const ScheduleScreen({super.key});
@@ -12,10 +17,26 @@ class ScheduleScreen extends StatefulWidget {
 }
 
 class _ScheduleScreenState extends State<ScheduleScreen> {
+  DateTime _focusedDay = DateTime.now();
+  DateTime? _selectedDay = DateTime.now();
+  List<ReadyWorkout> passedWorkouts =
+      []; // Replace with your passed workouts list
+  List<ScheduledWorkout> scheduledWorkouts =
+      []; // Replace with your scheduled workouts list
+
   @override
   void initState() {
     super.initState();
-    _fetchScheduledWorkouts();
+    // _fetchScheduledWorkouts();
+  }
+
+  @override
+  void didChangeDependencies() {
+    // TODO: implement didChangeDependencies
+    super.didChangeDependencies();
+    passedWorkouts = Provider.of<ReadyWorkoutProvider>(context).readyWorkouts;
+    scheduledWorkouts =
+        Provider.of<ScheduledWorkoutsProvider>(context).scheduledWorkouts;
   }
 
   void _fetchScheduledWorkouts() async {
@@ -102,10 +123,11 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
                           userID: userID,
                           workoutID: selectedWorkout!);
                       print('Workout scheduled successfully!');
+                      _fetchScheduledWorkouts();
                     } catch (e) {
                       print(e);
-                      Navigator.pop(context);
                     }
+                    Navigator.pop(context);
                   },
                   child: const Text('Schedule'),
                 ),
@@ -120,86 +142,148 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
     );
   }
 
+  Widget _buildEventsMarker(DateTime date) {
+    // Customize this based on your logic to differentiate passed and scheduled workouts
+    bool hasPassedWorkouts = Provider.of<ReadyWorkoutProvider>(context)
+        .getReadyWorkoutsByDate(date)
+        .isNotEmpty; // Adjust your condition
+    bool hasScheduledWorkouts = Provider.of<ScheduledWorkoutsProvider>(context)
+        .getScheduledWorkoutsForDate(date)
+        .isNotEmpty;
+
+    List<Widget> markers = [];
+    if (hasPassedWorkouts) {
+      markers.add(Container(
+        width: 10.0,
+        height: 10.0,
+        margin: const EdgeInsets.symmetric(horizontal: 1.5),
+        decoration: const BoxDecoration(
+          shape: BoxShape.rectangle,
+          color: Colors.green,
+        ),
+      ));
+    }
+    if (hasScheduledWorkouts) {
+      markers.add(Container(
+        width: 10.0,
+        height: 10.0,
+        margin: const EdgeInsets.symmetric(horizontal: 1.5),
+        decoration: const BoxDecoration(
+          shape: BoxShape.rectangle,
+          color: Colors.lightBlue,
+        ),
+      ));
+    }
+
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: markers,
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
-    var scheduledWorkouts =
-        Provider.of<ScheduledWorkoutsProvider>(context).scheduledWorkouts;
-    const passedWorkouts = 5; // Placeholder value, replace with real data
+    var passedWorkouts = Provider.of<ReadyWorkoutProvider>(context)
+        .getReadyWorkoutsByDate(_selectedDay!);
+    var scheduledWorkouts = Provider.of<ScheduledWorkoutsProvider>(context)
+        .getScheduledWorkoutsForDate(_selectedDay!);
 
     return Scaffold(
       appBar: AppBar(
         title: const Text('Schedule', style: TextStyle(fontSize: 20)),
       ),
       body: Padding(
-        padding: const EdgeInsets.all(16.0),
+        padding: const EdgeInsets.all(10.0),
         child: Column(
-          crossAxisAlignment: CrossAxisAlignment.center,
           children: [
-            Container(
+            SizedBox(
               height: MediaQuery.of(context).size.height * 0.25,
-              width: double.infinity,
-              decoration: BoxDecoration(
-                color: Colors.grey[800],
-                borderRadius: BorderRadius.circular(10),
-              ),
-              child: const Center(
-                child: Text(
-                  'Placeholder for schedule content',
-                  style: TextStyle(fontSize: 16, color: Colors.white),
+              child: TableCalendar(
+                firstDay: DateTime.utc(2022, 1, 1),
+                lastDay: DateTime.utc(2030, 12, 31),
+                focusedDay: _focusedDay,
+                calendarFormat: CalendarFormat.week,
+                availableCalendarFormats: const {
+                  CalendarFormat.week: 'Week'
+                }, // Lock to 2-week view
+                selectedDayPredicate: (day) {
+                  return isSameDay(_selectedDay, day);
+                },
+                onDaySelected: (selectedDay, focusedDay) {
+                  setState(() {
+                    _selectedDay = selectedDay;
+                    _focusedDay =
+                        focusedDay; // update `_focusedDay` here as well
+                  });
+                },
+                calendarBuilders: CalendarBuilders(
+                  markerBuilder: (context, date, events) {
+                    return _buildEventsMarker(date);
+                  },
+                ),
+                calendarStyle: CalendarStyle(
+                  todayDecoration: BoxDecoration(
+                    color: Colors.yellow,
+                    shape: BoxShape.rectangle,
+                    borderRadius: BorderRadius.circular(5),
+                  ),
+                  todayTextStyle: const TextStyle(color: Colors.black),
+                  selectedDecoration: BoxDecoration(
+                    color: Colors.black,
+                    shape: BoxShape.rectangle,
+                    borderRadius: BorderRadius.circular(5),
+                    border: Border.all(color: Colors.yellow, width: 2),
+                  ),
+                  selectedTextStyle: const TextStyle(color: Colors.yellow),
+                  markersMaxCount: 2,
+                  weekendDecoration: BoxDecoration(
+                    shape: BoxShape.rectangle,
+                    borderRadius: BorderRadius.circular(8.0),
+                  ),
+                  defaultDecoration: BoxDecoration(
+                    shape: BoxShape.rectangle,
+                    borderRadius: BorderRadius.circular(8.0),
+                  ),
+                  outsideDecoration: BoxDecoration(
+                    shape: BoxShape.rectangle,
+                    borderRadius: BorderRadius.circular(8.0),
+                  ),
+                  disabledDecoration: BoxDecoration(
+                    shape: BoxShape.rectangle,
+                    borderRadius: BorderRadius.circular(8.0),
+                  ),
                 ),
               ),
             ),
-            const SizedBox(height: 20),
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.center,
-              children: [
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Container(
-                      decoration: BoxDecoration(
-                        color: Colors.green,
-                        borderRadius: BorderRadius.circular(5),
-                      ),
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 8,
-                        vertical: 4,
-                      ),
-                      child: const Text(
-                        '$passedWorkouts',
-                        style: TextStyle(color: Colors.white),
-                      ),
+            // Expanded view to show more details about selected day
+            Container(
+              padding: const EdgeInsets.all(10.0),
+              height: MediaQuery.of(context).size.height * 0.50,
+              width: MediaQuery.of(context).size.width * 0.9,
+              decoration: BoxDecoration(
+                color: Colors.grey[900],
+                shape: BoxShape.rectangle,
+                borderRadius: BorderRadius.circular(10),
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    CustomDateUtils.formatDate(_selectedDay!),
+                    style: const TextStyle(
+                      fontSize: 16.0,
                     ),
-                    const SizedBox(width: 8),
-                    const Text('Passed workouts'),
-                  ],
-                ),
-                const SizedBox(height: 10),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Container(
-                      decoration: BoxDecoration(
-                        color: Colors.lightBlue,
-                        borderRadius: BorderRadius.circular(5),
-                      ),
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 8,
-                        vertical: 4,
-                      ),
-                      child: Text(
-                        scheduledWorkouts.isEmpty
-                            ? '0'
-                            : '${scheduledWorkouts.length}',
-                        style: const TextStyle(color: Colors.white),
-                      ),
-                    ),
-                    const SizedBox(width: 8),
-                    const Text('Scheduled workouts')
-                  ],
-                ),
-                const SizedBox(height: 20),
-              ],
+                  ),
+                  const SizedBox(
+                    height: 20,
+                  ),
+                  Text('${passedWorkouts.length}'),
+                  const SizedBox(
+                    height: 10,
+                  ),
+                  Text('${scheduledWorkouts.length}'),
+                ],
+              ),
             ),
             const Spacer(),
             ElevatedButton(

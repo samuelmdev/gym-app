@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'package:amplify_flutter/amplify_flutter.dart';
+import 'package:gym_app/models/ready_workout.dart';
 
 class ReadyWorkoutService {
   // Mutation for creating a ReadyWorkout
@@ -17,14 +18,14 @@ class ReadyWorkoutService {
     String createReadyWorkoutMutation = '''
       mutation CreateReadyWorkout(\$input: CreateReadyWorkoutInput!) {
         createReadyWorkout(input: \$input) {
-          weightLifted
-          bodyWeightReps
-          startTimestamp
-          endTimestamp
+          weightlifted
+          bodyweightreps
+          starttimestamp
+          endtimestamp
           duration
           userID
-          doneSets
-          totalReps
+          donesets
+          totalreps
         }
       }
     ''';
@@ -33,14 +34,14 @@ class ReadyWorkoutService {
       document: createReadyWorkoutMutation,
       variables: {
         'input': {
-          'weightLifted': weightLifted,
-          'bodyWeightReps': bodyWeightReps,
-          'startTimestamp': startTimestamp,
-          'endTimestamp': endTimestamp,
+          'weightlifted': weightLifted,
+          'bodyweightreps': bodyWeightReps,
+          'starttimestamp': startTimestamp.toSeconds(),
+          'endtimestamp': endTimestamp.toSeconds(),
           'duration': duration,
           'userID': userID,
-          'doneSets': doneSets,
-          'totalReps': totalReps,
+          'donesets': doneSets,
+          'totalreps': totalReps,
         },
       },
     );
@@ -89,6 +90,64 @@ class ReadyWorkoutService {
 
     if (response.errors.isNotEmpty) {
       throw Exception('Failed to create completed workout: ${response.errors}');
+    }
+  }
+
+  static Future<List<ReadyWorkout>> fetchReadyWorkoutsByUserID(
+      String userID) async {
+    try {
+      String listReadyWorkoutsQuery = '''
+      query ListReadyWorkouts(\$filter: ModelReadyWorkoutFilterInput) {
+        listReadyWorkouts(filter: \$filter) {
+          items {
+            id
+            userID
+            starttimestamp
+            endtimestamp
+            duration
+            weightlifted
+            bodyweightreps
+            donesets
+            totalreps
+          }
+        }
+      }
+    ''';
+
+      var request = GraphQLRequest<String>(
+        document: listReadyWorkoutsQuery,
+        variables: {
+          'filter': {
+            'userID': {'eq': userID}
+          }
+        },
+      );
+
+      var response = await Amplify.API.query(request: request).response;
+
+      if (response.errors.isNotEmpty) {
+        throw Exception('Failed to fetch ready workouts: ${response.errors}');
+      }
+
+      var data =
+          jsonDecode(response.data!)['listReadyWorkouts']['items'] as List;
+      print('Raw ready workout Data: $data'); // Debug statement
+
+      List<ReadyWorkout> workouts = data.map((item) {
+        try {
+          return ReadyWorkout.fromJson(item);
+        } catch (e) {
+          print('Error parsing item: $item\nException: $e');
+          rethrow;
+        }
+      }).toList();
+
+      print('ready workouts: $workouts'); // Debug statement
+
+      return workouts;
+    } catch (e) {
+      print('Error fetching ready workouts: $e');
+      rethrow;
     }
   }
 }

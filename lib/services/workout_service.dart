@@ -25,10 +25,7 @@ class WorkoutService {
       );
       var response = await operation.response;
       var data = response.data;
-      print('User Id: $userId'); // Debug statement
-      print('Raw Data: $data'); // Debug statement
       var decodedData = jsonDecode(data!);
-      print('Decoded Data: $decodedData'); // Debug statement
 
       List<Workout> allWorkouts = (decodedData['listWorkouts']['items'] as List)
           .map((item) => Workout.fromJson(item))
@@ -37,8 +34,6 @@ class WorkoutService {
       // Filter workouts by userId
       List<Workout> userWorkouts =
           allWorkouts.where((workout) => workout.userId == userId).toList();
-      print('User Workouts: $userWorkouts'); // Debug statement
-      print('User Id: $userId'); // Debug statement
 
       return userWorkouts;
     } catch (e) {

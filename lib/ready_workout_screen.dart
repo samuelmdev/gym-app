@@ -21,6 +21,7 @@ class ReadyWorkoutScreen extends StatelessWidget {
             'Workout Summary',
             style: TextStyle(fontSize: 16),
           ),
+          automaticallyImplyLeading: false,
         ),
         body: Padding(
           padding: const EdgeInsets.all(16.0),
@@ -115,7 +116,7 @@ class ReadyWorkoutScreen extends StatelessWidget {
                         startTimestamp: nonNullStartTime,
                         endTimestamp: nonNullStopTime,
                         duration: completedWorkout.duration!.inMinutes.toInt(),
-                        userID: 'user123',
+                        userID: completedWorkout.userId!,
                         doneSets: completedWorkout.doneSets,
                         totalReps: completedWorkout.totalReps,
                       );
@@ -135,7 +136,7 @@ class ReadyWorkoutScreen extends StatelessWidget {
                     }
                     Navigator.of(context).pushAndRemoveUntil(
                         MaterialPageRoute(
-                          builder: (context) => HomeScreen(),
+                          builder: (context) => const HomeScreen(),
                         ),
                         (Route<dynamic> route) => false);
                   },

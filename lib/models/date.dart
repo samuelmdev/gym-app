@@ -26,6 +26,6 @@ class CustomDateUtils {
     String suffix = getOrdinalSuffix(int.parse(day));
 
     // Create formatted date string
-    return '$day$suffix of $month $year';
+    return '$day$suffix of $month, $year';
   }
 }

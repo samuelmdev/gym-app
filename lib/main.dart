@@ -2,10 +2,13 @@ import 'package:flutter/material.dart';
 import 'package:amplify_flutter/amplify_flutter.dart';
 import 'package:amplify_api/amplify_api.dart';
 import 'package:amplify_auth_cognito/amplify_auth_cognito.dart';
+import 'package:gym_app/providers/planned_workout_provider.dart';
+import 'package:gym_app/providers/ready_workout_provider.dart';
 import 'package:gym_app/providers/scheduled_workout_provider.dart';
 import 'package:gym_app/providers/workouts_provider.dart';
 import 'package:gym_app/ready_workout_screen.dart';
 import 'package:gym_app/schedule_screen.dart';
+import 'package:gym_app/sets_planner.dart';
 import 'package:provider/provider.dart';
 import 'amplifyconfiguration.dart';
 import 'planner_screen.dart';
@@ -14,7 +17,6 @@ import 'progress_screen.dart';
 import 'providers/completed_workout_provider.dart';
 import 'providers/exercises_provider.dart';
 import 'providers/sets_provider.dart';
-import 'providers/scheduled_workout_provider.dart';
 import 'services/auth_service.dart';
 import 'workout_screen.dart';
 import 'sign_in_screen.dart';
@@ -37,6 +39,8 @@ void main() async {
         ChangeNotifierProvider(create: (_) => SetsProvider()),
         ChangeNotifierProvider(create: (_) => CompletedWorkoutProvider()),
         ChangeNotifierProvider(create: (_) => ScheduledWorkoutsProvider()),
+        ChangeNotifierProvider(create: (_) => ReadyWorkoutProvider()),
+        ChangeNotifierProvider(create: (_) => PlannedWorkoutProvider()),
       ],
       child: const MyApp(),
     ),
@@ -130,7 +134,7 @@ class _MyAppState extends State<MyApp> {
       ),
       home: _isAmplifyConfigured
           ? (_isSignedIn
-              ? HomeScreen()
+              ? const HomeScreen()
               : SignInScreen(authService: AuthService()))
           : const Scaffold(body: Center(child: CircularProgressIndicator())),
       routes: {
@@ -150,6 +154,9 @@ class _MyAppState extends State<MyApp> {
         '/planner': (context) => const PlannerScreen(),
         '/progress': (context) => const ProgressScreen(),
         '/profile': (context) => const ProfileScreen(),
+        '/setsplanner': (context) => SetsPlanner(
+            selectedExercises:
+                ModalRoute.of(context)!.settings.arguments as List<Exercise>),
       },
     );
   }
