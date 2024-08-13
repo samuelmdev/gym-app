@@ -155,3 +155,86 @@ class _WorkoutScreenState extends State<WorkoutScreen> {
     );
   }
 }
+
+
+/*
+Stack(
+              children: [
+                GestureDetector(
+                  onHorizontalDragStart: (details) {
+                    setState(() {
+                      _isDragging = true;
+                      _dragPosition = details.localPosition.dx;
+                    });
+                  },
+                  onHorizontalDragUpdate: (details) {
+                    setState(() {
+                      _dragPosition = details.localPosition.dx;
+                    });
+                  },
+                  onHorizontalDragEnd: (details) {
+                    if (_dragPosition > MediaQuery.of(context).size.width * 0.6) {
+                      _startWorkout(context, workout);
+                    }
+                    setState(() {
+                      _isDragging = false;
+                      _dragPosition = 0.0;
+                    });
+                  },
+                  child: Container(
+                    decoration: BoxDecoration(
+                      border: Border.all(color: Colors.yellow, width: 2.0),
+                      borderRadius: BorderRadius.circular(8.0),
+                    ),
+                    child: ListTile(
+                      title: Text(
+                        '${workouts!.name}',
+                        style: const TextStyle(fontSize: 18.0),
+                      ),
+                      trailing: IconButton(
+                        icon: const Icon(Icons.play_arrow, color: Colors.yellow),
+                        onPressed: () => {
+                            Provider.of<CompletedWorkoutProvider>(context,
+                                    listen: false)
+                                .startWorkout(userId, _selectedWorkout),
+                            Navigator.of(context).push(
+                              MaterialPageRoute(
+                                builder: (context) =>
+                                    WorkoutPlayer(workout: _selectedWorkout!),
+                              ),
+                            )},
+                      ),
+                    ),
+                  ),
+                ),
+                if (_isDragging)
+                  Positioned(
+                    left: _dragPosition - 50,
+                    top: 0,
+                    bottom: 0,
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 8.0),
+                      decoration: BoxDecoration(
+                        color: Colors.yellow,
+                        borderRadius: BorderRadius.circular(8.0),
+                      ),
+                      child: const Row(
+                        children: [
+                          Text(
+                            'Slide to Start',
+                            style: TextStyle(
+                              fontSize: 14.0,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.black,
+                            ),
+                          ),
+                          SizedBox(width: 5),
+                          Icon(Icons.arrow_forward, color: Colors.black),
+                        ],
+                      ),
+                    ),
+                  ),
+              ],
+                        ),
+                      );
+                    },  */

@@ -21,6 +21,7 @@ class ReadyWorkoutScreen extends StatelessWidget {
             'Workout Summary',
             style: TextStyle(fontSize: 16),
           ),
+          automaticallyImplyLeading: false,
         ),
         body: Padding(
           padding: const EdgeInsets.all(16.0),
