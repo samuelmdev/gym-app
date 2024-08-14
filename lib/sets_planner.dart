@@ -102,16 +102,51 @@ class _SetsPlannerState extends State<SetsPlanner> {
                                 ),
                               ),
                               onPressed: () async {
-                                final newSet = await showModalBottomSheet<Set>(
-                                  context: context,
-                                  isScrollControlled: true,
-                                  builder: (BuildContext context) {
-                                    return AddExerciseModal(exercise: exercise);
-                                  },
-                                );
-
-                                if (newSet != null) {
-                                  plannedWorkoutProvider.addSet(newSet);
+                                if (sets.isNotEmpty) {
+                                  // If sets exist, handle editing
+                                  showModalBottomSheet(
+                                    context: context,
+                                    isScrollControlled: true,
+                                    builder: (BuildContext context) {
+                                      return FractionallySizedBox(
+                                        heightFactor: 0.7,
+                                        child: AddExerciseModal(
+                                          exercise: exercise,
+                                          existingSet: sets
+                                              .first, // Pass the existing set for editing
+                                        ),
+                                      );
+                                    },
+                                  ).then((updatedSet) {
+                                    if (updatedSet != null) {
+                                      // Handle the updated set
+                                      setState(() {
+                                        plannedWorkoutProvider.updateSet(
+                                            updatedSet); // You can use the update method you have in the provider
+                                      });
+                                    }
+                                  });
+                                } else {
+                                  // If no sets exist, handle adding new sets
+                                  showModalBottomSheet(
+                                    context: context,
+                                    isScrollControlled: true,
+                                    builder: (BuildContext context) {
+                                      return FractionallySizedBox(
+                                        heightFactor: 0.7,
+                                        child: AddExerciseModal(
+                                          exercise: exercise,
+                                        ),
+                                      );
+                                    },
+                                  ).then((newSet) {
+                                    if (newSet != null) {
+                                      // Handle the new set added by the modal
+                                      setState(() {
+                                        plannedWorkoutProvider.addSet(newSet);
+                                      });
+                                    }
+                                  });
                                 }
                               },
                               child: Text(

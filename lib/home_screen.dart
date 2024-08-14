@@ -162,7 +162,7 @@ class _HomeScreenState extends State<HomeScreen> {
                           style: const TextStyle(fontSize: 20),
                         ),
                         const SizedBox(height: 40),
-                        DynamicTiles(),
+                        const DynamicTiles(),
                         const SizedBox(height: 40),
                         Column(
                           children: [

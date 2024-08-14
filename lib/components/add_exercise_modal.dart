@@ -1,18 +1,18 @@
 import 'package:amplify_flutter/amplify_flutter.dart';
 import 'package:flutter/material.dart';
-import 'package:gym_app/models/exercise.dart';
-import 'package:provider/provider.dart';
-import '../providers/exercises_provider.dart';
+import '../models/exercise.dart';
 import '../models/set.dart';
 
 class AddExerciseModal extends StatefulWidget {
   final String? workoutId;
-  final Exercise? exercise; // Optional parameter for the exercise
+  final Exercise? exercise;
+  final Set? existingSet; // Optional parameter for editing an existing set
 
   const AddExerciseModal({
     super.key,
     this.workoutId,
     this.exercise,
+    this.existingSet,
   });
 
   @override
@@ -20,23 +20,46 @@ class AddExerciseModal extends StatefulWidget {
 }
 
 class _AddExerciseModalState extends State<AddExerciseModal> {
-  List<Map<String, String>> sets = [];
+  late List<TextEditingController> _repsControllers;
+  late List<TextEditingController> _weightControllers;
   Exercise? selectedExercise;
 
   @override
   void initState() {
     super.initState();
-    sets = [
-      {'reps': '', 'weight': ''}
-    ];
     selectedExercise = widget.exercise;
+
+    if (widget.existingSet != null) {
+      // Initialize controllers with existing set values
+      _repsControllers = widget.existingSet!.reps
+          .map((rep) => TextEditingController(text: rep.toString()))
+          .toList();
+      _weightControllers = widget.existingSet!.weight != null
+          ? widget.existingSet!.weight!
+              .map((weight) => TextEditingController(text: weight.toString()))
+              .toList()
+          : [TextEditingController()];
+    } else {
+      // Initialize controllers for a new set
+      _repsControllers = [TextEditingController()];
+      _weightControllers = [TextEditingController()];
+    }
+  }
+
+  @override
+  void dispose() {
+    // Dispose of the controllers when done
+    for (var controller in _repsControllers) {
+      controller.dispose();
+    }
+    for (var controller in _weightControllers) {
+      controller.dispose();
+    }
+    super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
-    final exerciseProvider = Provider.of<ExercisesProvider>(context);
-    final exercises = exerciseProvider.exercises;
-
     return Padding(
       padding: const EdgeInsets.all(20.0),
       child: Column(
@@ -47,22 +70,16 @@ class _AddExerciseModalState extends State<AddExerciseModal> {
             style: const TextStyle(fontSize: 20),
           ),
           const SizedBox(height: 20),
-          if (widget.exercise == null) // Show dropdown if no exercise is passed
+          if (widget.exercise == null)
             DropdownButton<Exercise>(
               hint: const Text("Select Exercise"),
               value: selectedExercise,
-              items: exercises!.map((Exercise exercise) {
-                return DropdownMenuItem<Exercise>(
-                  value: exercise,
-                  child: Text(exercise.name),
-                );
-              }).toList(),
+              items: [], // Add your exercise list here
               onChanged: (newValue) {
                 setState(() {
                   selectedExercise = newValue;
-                  sets = [
-                    {'reps': '', 'weight': ''}
-                  ]; // Reset sets when a different exercise is selected
+                  _repsControllers = [TextEditingController()];
+                  _weightControllers = [TextEditingController()];
                 });
               },
             ),
@@ -70,35 +87,38 @@ class _AddExerciseModalState extends State<AddExerciseModal> {
             Flexible(
               child: ListView.builder(
                 shrinkWrap: true,
-                itemCount: sets.length,
+                itemCount: _repsControllers.length,
                 itemBuilder: (context, index) {
                   return Row(
                     children: [
                       Expanded(
                         child: TextField(
+                          controller: _repsControllers[index],
                           decoration: const InputDecoration(labelText: 'Reps'),
                           keyboardType: TextInputType.number,
-                          onChanged: (value) {
-                            setState(() {
-                              sets[index]['reps'] = value;
-                            });
-                          },
                         ),
                       ),
                       const SizedBox(width: 10),
                       Expanded(
                         child: TextField(
+                          controller: _weightControllers[index],
                           decoration: InputDecoration(
                               labelText:
                                   '${selectedExercise!.type == 'Bodyweight' ? 'Additional ' : ''}Weight'),
                           keyboardType: TextInputType.number,
-                          onChanged: (value) {
+                        ),
+                      ),
+                      if (_repsControllers.length > 1) ...[
+                        IconButton(
+                          icon: const Icon(Icons.close, color: Colors.red),
+                          onPressed: () {
                             setState(() {
-                              sets[index]['weight'] = value;
+                              _repsControllers.removeAt(index);
+                              _weightControllers.removeAt(index);
                             });
                           },
                         ),
-                      ),
+                      ],
                     ],
                   );
                 },
@@ -110,17 +130,17 @@ class _AddExerciseModalState extends State<AddExerciseModal> {
                 backgroundColor: Colors.black,
                 foregroundColor: Colors.yellow,
                 shape: RoundedRectangleBorder(
-                  borderRadius:
-                      BorderRadius.circular(8), // slightly rounded edges
+                  borderRadius: BorderRadius.circular(8),
                 ),
               ),
-              onPressed: sets.length < 10
-                  ? () {
-                      setState(() {
-                        sets.add({'reps': '', 'weight': ''});
-                      });
-                    }
-                  : null,
+              onPressed: () {
+                if (_repsControllers.length < 10) {
+                  setState(() {
+                    _repsControllers.add(TextEditingController());
+                    _weightControllers.add(TextEditingController());
+                  });
+                }
+              },
               icon: const Icon(Icons.add),
               label: const Text('Add Set'),
             ),
@@ -134,8 +154,7 @@ class _AddExerciseModalState extends State<AddExerciseModal> {
                   backgroundColor: Colors.black,
                   foregroundColor: Colors.yellow,
                   shape: RoundedRectangleBorder(
-                    borderRadius:
-                        BorderRadius.circular(8), // slightly rounded edges
+                    borderRadius: BorderRadius.circular(8),
                   ),
                 ),
                 child: const Text('Cancel'),
@@ -146,24 +165,26 @@ class _AddExerciseModalState extends State<AddExerciseModal> {
               const SizedBox(width: 10),
               ElevatedButton(
                 style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.black,
+                  foregroundColor: Colors.yellow,
                   shape: RoundedRectangleBorder(
-                    borderRadius:
-                        BorderRadius.circular(8), // slightly rounded edges
+                    borderRadius: BorderRadius.circular(8),
                   ),
                 ),
-                child: const Text('Add into workout'),
+                child: const Text('Save'),
                 onPressed: () {
                   if (selectedExercise != null) {
-                    List<int> repsList =
-                        sets.map((set) => int.parse(set['reps']!)).toList();
-                    List<int>? weightList = sets
-                        .map((set) => set['weight']!.isNotEmpty
-                            ? int.parse(set['weight']!)
+                    List<int> repsList = _repsControllers
+                        .map((controller) => int.parse(controller.text))
+                        .toList();
+                    List<int>? weightList = _weightControllers
+                        .map((controller) => controller.text.isNotEmpty
+                            ? int.parse(controller.text)
                             : 0)
                         .toList();
 
                     Set newSet = Set(
-                      id: uuid(),
+                      id: widget.existingSet?.id ?? uuid(),
                       reps: repsList,
                       weight: weightList,
                       exercisesId: selectedExercise!.id,

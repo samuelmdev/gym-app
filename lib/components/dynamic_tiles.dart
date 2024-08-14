@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 
 class DynamicTiles extends StatefulWidget {
+  const DynamicTiles({super.key});
+
   @override
   _DynamicTilesState createState() => _DynamicTilesState();
 }

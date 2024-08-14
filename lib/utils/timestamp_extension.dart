@@ -12,6 +12,6 @@ extension TemporalTimestampExtension on TemporalTimestamp {
   }
 
   int getSecondsSinceEpoch() {
-    return int.parse(this.toString());
+    return int.parse(toString());
   }
 }

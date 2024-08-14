@@ -6,7 +6,7 @@ import 'providers/planned_workout_provider.dart';
 import 'sets_planner.dart';
 
 class PlannerScreen extends StatefulWidget {
-  const PlannerScreen({Key? key}) : super(key: key);
+  const PlannerScreen({super.key});
 
   @override
   _PlannerScreenState createState() => _PlannerScreenState();
@@ -202,7 +202,7 @@ class _PlannerScreenState extends State<PlannerScreen> {
                         return ListTile(
                           title: Text(exercise.name),
                           trailing: IconButton(
-                              icon: const Icon(Icons.delete, color: Colors.red),
+                              icon: const Icon(Icons.close, color: Colors.red),
                               onPressed: () => {
                                     _removeSelectedExercise(exercise),
                                     plannedWorkoutProvider

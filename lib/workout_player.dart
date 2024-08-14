@@ -5,7 +5,6 @@ import 'package:gym_app/providers/sets_provider.dart';
 import 'package:provider/provider.dart';
 import 'package:gym_app/models/set.dart';
 import 'components/add_exercise_modal.dart';
-import 'models/completed_workout.dart';
 import 'providers/completed_workout_provider.dart';
 import 'ready_workout_screen.dart';
 //import 'services/exercises_service.dart';

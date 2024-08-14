@@ -29,4 +29,20 @@ class Set {
         'exercises': exercisesId,
         'workoutID': workoutID,
       };
+
+  Set copyWith({
+    String? id,
+    List<int>? reps,
+    List<int>? weight,
+    String? exercisesId,
+    String? workoutID,
+  }) {
+    return Set(
+      id: id ?? this.id,
+      reps: reps ?? this.reps,
+      weight: weight ?? this.weight,
+      exercisesId: exercisesId ?? this.exercisesId,
+      workoutID: workoutID ?? this.workoutID,
+    );
+  }
 }

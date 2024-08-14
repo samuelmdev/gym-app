@@ -64,6 +64,18 @@ class PlannedWorkoutProvider with ChangeNotifier {
     }
   }
 
+  void updateSet(Set updatedSet) {
+    if (_exerciseSets.containsKey(updatedSet.exercisesId)) {
+      final setIndex = _exerciseSets[updatedSet.exercisesId]!
+          .indexWhere((set) => set.id == updatedSet.id);
+      if (setIndex != -1) {
+        // Replace the old set with the updated one
+        _exerciseSets[updatedSet.exercisesId]![setIndex] = updatedSet;
+        notifyListeners();
+      }
+    }
+  }
+
   // Function to get the planned workout
   Workout? getPlannedWorkout() {
     return _plannedWorkout;
