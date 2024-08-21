@@ -10,6 +10,8 @@ class PlannedWorkoutProvider with ChangeNotifier {
 
   // Getter for selected exercises
   List<Exercise> get selectedExercises => _selectedExercises;
+  Workout? get plannedWorkout => _plannedWorkout;
+  Map<String, List<Set>> get exerciseSets => _exerciseSets;
 
   // Getter for the sets of a specific exercise
   List<Set> getSetsForExercise(String exerciseId) {
@@ -20,8 +22,8 @@ class PlannedWorkoutProvider with ChangeNotifier {
   void createPlannedWorkout(String name, String type, String userId) {
     _plannedWorkout = Workout(
         id: UniqueKey().toString(), name: name, type: type, userId: userId);
-    _selectedExercises.clear();
-    _exerciseSets.clear();
+    // _selectedExercises.clear();
+    // _exerciseSets.clear();
     notifyListeners();
   }
 
@@ -52,8 +54,10 @@ class PlannedWorkoutProvider with ChangeNotifier {
           exercisesId: set.exercisesId,
           workoutID: _plannedWorkout?.id);
       _exerciseSets[set.exercisesId]!.add(newSet);
+      print(newSet);
       notifyListeners();
     }
+    print(set);
   }
 
 // Function to remove all sets associated with a specific exerciseId

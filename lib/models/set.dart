@@ -1,14 +1,14 @@
 // lib/models/Set.dart
 
 class Set {
-  final String id;
+  final String? id;
   final List<int> reps;
   final List<int>? weight;
   final String exercisesId;
   final String? workoutID;
 
   Set({
-    required this.id,
+    this.id,
     required this.reps,
     this.weight,
     required this.exercisesId,

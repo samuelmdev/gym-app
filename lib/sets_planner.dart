@@ -3,6 +3,7 @@ import 'package:gym_app/models/exercise.dart'; // Import your Exercise model
 import 'package:gym_app/models/set.dart';
 import 'package:provider/provider.dart';
 import 'components/add_exercise_modal.dart';
+import 'components/confirm_workout_dialog.dart';
 import 'providers/planned_workout_provider.dart';
 
 class SetsPlanner extends StatefulWidget {
@@ -56,7 +57,7 @@ class _SetsPlannerState extends State<SetsPlanner> {
     return Scaffold(
       appBar: AppBar(
         title: const Text(
-          'Sets planner',
+          'Planner - sets',
         ),
       ),
       body: Padding(
@@ -70,6 +71,8 @@ class _SetsPlannerState extends State<SetsPlanner> {
                 style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
               ),
             ),
+            Text(
+                'Workout type: ${plannedWorkoutProvider.plannedWorkout!.type}'),
             Expanded(
               child: ListView.builder(
                 itemCount: widget.selectedExercises.length,
@@ -140,8 +143,10 @@ class _SetsPlannerState extends State<SetsPlanner> {
                                       );
                                     },
                                   ).then((newSet) {
+                                    print(newSet);
                                     if (newSet != null) {
                                       // Handle the new set added by the modal
+                                      print('run addSet for provider');
                                       setState(() {
                                         plannedWorkoutProvider.addSet(newSet);
                                       });
@@ -193,11 +198,35 @@ class _SetsPlannerState extends State<SetsPlanner> {
                             .isNotEmpty)
                     ? () {
                         // Confirm workout logic here
+                        showDialog(
+                          context: context,
+                          builder: (BuildContext context) {
+                            return ConfirmWorkoutDialog(
+                              workoutType:
+                                  plannedWorkoutProvider.plannedWorkout!.type,
+                              exercisesCount: plannedWorkoutProvider
+                                  .selectedExercises.length,
+                              existingWorkoutName:
+                                  plannedWorkoutProvider.plannedWorkout!.name,
+                            );
+                          },
+                        );
                       }
-                    : null,
+                    : null, // Button is disabled when this is null
                 style: ElevatedButton.styleFrom(
-                  foregroundColor: Colors.black,
-                  backgroundColor: Colors.yellow,
+                  foregroundColor: plannedWorkoutProvider.selectedExercises
+                          .every((exercise) => plannedWorkoutProvider
+                              .getSetsForExercise(exercise.id)
+                              .isNotEmpty)
+                      ? Colors.black
+                      : Colors.grey, // Gray color when disabled
+                  backgroundColor: plannedWorkoutProvider.selectedExercises
+                          .every((exercise) => plannedWorkoutProvider
+                              .getSetsForExercise(exercise.id)
+                              .isNotEmpty)
+                      ? Colors.yellow
+                      : Colors
+                          .grey[400], // Lighter gray background when disabled
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(8.0),
                   ),

@@ -167,8 +167,8 @@ class _HomeScreenState extends State<HomeScreen> {
                         Column(
                           children: [
                             ElevatedButton.icon(
-                              onPressed: () =>
-                                  Navigator.of(context).pushNamed('/planner'),
+                              onPressed: () => Navigator.of(context)
+                                  .pushNamed('/planner', arguments: userId),
                               style: ElevatedButton.styleFrom(
                                 foregroundColor: Colors.yellow,
                                 backgroundColor: Colors.black,
