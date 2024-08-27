@@ -42,7 +42,7 @@ class WorkoutService {
     }
   }
 
-  Future<String?> createWorkout({
+  static Future<String?> createWorkout({
     required String name,
     required String type,
     required String userId,
@@ -71,6 +71,7 @@ class WorkoutService {
       );
 
       var response = await Amplify.API.mutate(request: request).response;
+      print('create workout called: $response');
 
       // Handle the response
       if (response.data != null) {

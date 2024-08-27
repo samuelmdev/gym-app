@@ -35,7 +35,7 @@ class WorkoutsProvider with ChangeNotifier {
   Future<void> createNewWorkout(String name, String type, String userId) async {
     try {
       // Use the service instance to create the workout
-      String? newWorkoutId = await _workoutService.createWorkout(
+      String? newWorkoutId = await WorkoutService.createWorkout(
           name: name, type: type, userId: userId);
 
       if (newWorkoutId != null) {

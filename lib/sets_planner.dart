@@ -201,14 +201,7 @@ class _SetsPlannerState extends State<SetsPlanner> {
                         showDialog(
                           context: context,
                           builder: (BuildContext context) {
-                            return ConfirmWorkoutDialog(
-                              workoutType:
-                                  plannedWorkoutProvider.plannedWorkout!.type,
-                              exercisesCount: plannedWorkoutProvider
-                                  .selectedExercises.length,
-                              existingWorkoutName:
-                                  plannedWorkoutProvider.plannedWorkout!.name,
-                            );
+                            return const ConfirmWorkoutDialog();
                           },
                         );
                       }

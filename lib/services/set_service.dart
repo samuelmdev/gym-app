@@ -34,7 +34,7 @@ class SetService {
     return sets;
   }
 
-  Future<String?> createSingleSet({
+  static Future<String?> createSingleSet({
     required List<int> reps,
     List<int>? weight,
     required String exerciseId,

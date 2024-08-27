@@ -273,7 +273,7 @@ class _PlannerScreenState extends State<PlannerScreen> {
                         onPressed: selectedExercises.isNotEmpty
                             ? () {
                                 plannedWorkoutProvider.createPlannedWorkout(
-                                    '', workoutType, userId);
+                                    '', '', workoutType, userId);
                                 Navigator.push(
                                   context,
                                   MaterialPageRoute(

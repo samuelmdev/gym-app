@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import '../models/exercise.dart';
 import '../models/set.dart';
 import '../models/workout.dart';
+import '../services/set_service.dart';
+import '../services/workout_service.dart';
 
 class PlannedWorkoutProvider with ChangeNotifier {
   Workout? _plannedWorkout;
@@ -19,9 +21,9 @@ class PlannedWorkoutProvider with ChangeNotifier {
   }
 
   // Function to initialize a workout plan
-  void createPlannedWorkout(String name, String type, String userId) {
-    _plannedWorkout = Workout(
-        id: UniqueKey().toString(), name: name, type: type, userId: userId);
+  void createPlannedWorkout(
+      String id, String name, String type, String userId) {
+    _plannedWorkout = Workout(id: id, name: name, type: type, userId: userId);
     // _selectedExercises.clear();
     // _exerciseSets.clear();
     notifyListeners();
@@ -97,6 +99,52 @@ class PlannedWorkoutProvider with ChangeNotifier {
       _selectedExercises.clear();
       _exerciseSets.clear();
       notifyListeners();
+    }
+  }
+
+  void updateExistingWorkout() {}
+
+  Future<void> saveNewWorkout() async {
+    if (_plannedWorkout == null) return;
+
+    try {
+      // Create the workout and get the newly created workout ID
+      final String? workoutId = await WorkoutService.createWorkout(
+          name: _plannedWorkout!.name,
+          type: _plannedWorkout!.type,
+          userId: _plannedWorkout!.userId);
+      print('save workout run in provider');
+
+      // If workout creation is successful, save the sets
+      for (var entry in _exerciseSets.entries) {
+        final exerciseId = entry.key;
+        final sets = entry.value;
+
+        for (var set in sets) {
+          // Create a new Set object with the workoutId and exerciseId
+          final Set newSet = Set(
+            id: set.id,
+            reps: set.reps,
+            weight: set.weight,
+            exercisesId: exerciseId,
+            workoutID: workoutId,
+          );
+
+          // Save each set using the SetService
+          await SetService.createSingleSet(
+              reps: newSet.reps,
+              weight: newSet.weight,
+              exerciseId: newSet.exercisesId,
+              workoutId: newSet.workoutID);
+        }
+      }
+
+      // Notify listeners if needed
+      notifyListeners();
+    } catch (e) {
+      // Handle any errors
+      debugPrint('Error saving workout: $e');
+      // Optionally notify listeners or handle the error accordingly
     }
   }
 }

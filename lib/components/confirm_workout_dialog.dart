@@ -1,19 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import '../home_screen.dart';
 import '../providers/planned_workout_provider.dart';
 
 class ConfirmWorkoutDialog extends StatefulWidget {
-  final String workoutType;
-  final int exercisesCount;
-  final String?
-      existingWorkoutName; // Optional parameter for existing workout name
-
-  const ConfirmWorkoutDialog({
-    super.key,
-    required this.workoutType,
-    required this.exercisesCount,
-    this.existingWorkoutName,
-  });
+  const ConfirmWorkoutDialog({super.key});
 
   @override
   _ConfirmWorkoutDialogState createState() => _ConfirmWorkoutDialogState();
@@ -25,9 +16,11 @@ class _ConfirmWorkoutDialogState extends State<ConfirmWorkoutDialog> {
   @override
   void initState() {
     super.initState();
-    // Initialize the TextEditingController with existingWorkoutName if it exists
-    _nameController =
-        TextEditingController(text: widget.existingWorkoutName ?? '');
+    final plannedWorkoutProvider =
+        Provider.of<PlannedWorkoutProvider>(context, listen: false);
+    // Initialize the TextEditingController with the workout name from the provider
+    _nameController = TextEditingController(
+        text: plannedWorkoutProvider.plannedWorkout?.name ?? '');
   }
 
   @override
@@ -38,13 +31,17 @@ class _ConfirmWorkoutDialogState extends State<ConfirmWorkoutDialog> {
 
   @override
   Widget build(BuildContext context) {
+    final plannedWorkoutProvider = Provider.of<PlannedWorkoutProvider>(context);
+
     return AlertDialog(
       title: const Text('Confirm Workout Plan'),
       content: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Text('Workout Type: ${widget.workoutType}'),
-          Text('Exercises Count: ${widget.exercisesCount}'),
+          Text(
+              'Workout Type: ${plannedWorkoutProvider.plannedWorkout?.type ?? 'Unknown'}'),
+          Text(
+              'Exercises Count: ${plannedWorkoutProvider.selectedExercises.length}'),
           const SizedBox(height: 20),
           TextField(
             controller: _nameController,
@@ -83,10 +80,23 @@ class _ConfirmWorkoutDialogState extends State<ConfirmWorkoutDialog> {
             ),
           ),
           onPressed: () {
-            // Save button functionality here
-            final workoutName = _nameController.text.trim();
+            String workoutName = _nameController.text.trim();
             if (workoutName.isNotEmpty) {
-              // Implement the save functionality here
+              // Update the workout name in the provider
+              plannedWorkoutProvider.plannedWorkout?.name = workoutName;
+
+              if (plannedWorkoutProvider.plannedWorkout!.id.isEmpty) {
+                // If the workout already has an ID, it means we're editing an existing workout
+                plannedWorkoutProvider.updateExistingWorkout();
+              } else {
+                // Otherwise, we're creating a new workout
+                plannedWorkoutProvider.saveNewWorkout();
+              }
+              Navigator.of(context).pushAndRemoveUntil(
+                  MaterialPageRoute(
+                    builder: (context) => const HomeScreen(),
+                  ),
+                  (Route<dynamic> route) => false);
             }
           },
           child: const Text('Save'),

@@ -1,6 +1,6 @@
 class Workout {
   final String id;
-  final String name;
+  late String name;
   final String type;
   final String userId;
 
