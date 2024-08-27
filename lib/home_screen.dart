@@ -162,13 +162,13 @@ class _HomeScreenState extends State<HomeScreen> {
                           style: const TextStyle(fontSize: 20),
                         ),
                         const SizedBox(height: 40),
-                        DynamicTiles(),
+                        const DynamicTiles(),
                         const SizedBox(height: 40),
                         Column(
                           children: [
                             ElevatedButton.icon(
-                              onPressed: () =>
-                                  Navigator.of(context).pushNamed('/planner'),
+                              onPressed: () => Navigator.of(context)
+                                  .pushNamed('/planner', arguments: userId),
                               style: ElevatedButton.styleFrom(
                                 foregroundColor: Colors.yellow,
                                 backgroundColor: Colors.black,

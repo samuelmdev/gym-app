@@ -6,7 +6,7 @@ import 'providers/planned_workout_provider.dart';
 import 'sets_planner.dart';
 
 class PlannerScreen extends StatefulWidget {
-  const PlannerScreen({Key? key}) : super(key: key);
+  const PlannerScreen({super.key});
 
   @override
   _PlannerScreenState createState() => _PlannerScreenState();
@@ -18,11 +18,14 @@ class _PlannerScreenState extends State<PlannerScreen> {
   List<Exercise> filteredExercises = [];
   List<Exercise> selectedExercises = [];
   bool showSelectedExercises = false;
+  late String userId;
+  String workoutType = '';
 
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
     final exercises = Provider.of<ExercisesProvider>(context).exercises;
+    userId = ModalRoute.of(context)!.settings.arguments as String;
 
     // Initialize filters only once after fetching exercises
     if (selectedTypes.isEmpty && selectedTargets.isEmpty) {
@@ -49,6 +52,18 @@ class _PlannerScreenState extends State<PlannerScreen> {
     });
   }
 
+  void _handleWorkoutType() {
+    // Recalculate workoutType based on the current selection
+    if (selectedExercises.isNotEmpty) {
+      final firstExerciseType = selectedExercises.first.type;
+      final isMixed =
+          selectedExercises.any((ex) => ex.type != firstExerciseType);
+      workoutType = isMixed ? 'Mixed' : firstExerciseType;
+    } else {
+      workoutType = ''; // Reset workoutType if no exercises are selected
+    }
+  }
+
   void _toggleExerciseSelection(Exercise exercise) {
     setState(() {
       if (selectedExercises.contains(exercise)) {
@@ -56,8 +71,12 @@ class _PlannerScreenState extends State<PlannerScreen> {
       } else {
         selectedExercises.add(exercise);
       }
+
+      _handleWorkoutType();
+
       _filterExercises(
-          Provider.of<ExercisesProvider>(context, listen: false).exercises!);
+        Provider.of<ExercisesProvider>(context, listen: false).exercises!,
+      );
 
       // Automatically toggle back to exercise selection if no exercises are selected
       if (selectedExercises.isEmpty && showSelectedExercises) {
@@ -77,6 +96,8 @@ class _PlannerScreenState extends State<PlannerScreen> {
   void _removeSelectedExercise(Exercise exercise) {
     setState(() {
       selectedExercises.remove(exercise);
+
+      _handleWorkoutType();
       _filterExercises(
           Provider.of<ExercisesProvider>(context, listen: false).exercises!);
 
@@ -95,7 +116,7 @@ class _PlannerScreenState extends State<PlannerScreen> {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Workout Planner'),
+        title: const Text('Planner - exercises'),
       ),
       body: exercises!.isEmpty
           ? const Center(child: CircularProgressIndicator())
@@ -111,6 +132,7 @@ class _PlannerScreenState extends State<PlannerScreen> {
                         fontSize: 24, fontWeight: FontWeight.bold),
                   ),
                 ),
+                Text('Workout type: $workoutType'),
                 if (!showSelectedExercises) ...[
                   // Filter Section
                   Padding(
@@ -202,7 +224,7 @@ class _PlannerScreenState extends State<PlannerScreen> {
                         return ListTile(
                           title: Text(exercise.name),
                           trailing: IconButton(
-                              icon: const Icon(Icons.delete, color: Colors.red),
+                              icon: const Icon(Icons.close, color: Colors.red),
                               onPressed: () => {
                                     _removeSelectedExercise(exercise),
                                     plannedWorkoutProvider
@@ -250,6 +272,8 @@ class _PlannerScreenState extends State<PlannerScreen> {
                       TextButton(
                         onPressed: selectedExercises.isNotEmpty
                             ? () {
+                                plannedWorkoutProvider.createPlannedWorkout(
+                                    '', '', workoutType, userId);
                                 Navigator.push(
                                   context,
                                   MaterialPageRoute(

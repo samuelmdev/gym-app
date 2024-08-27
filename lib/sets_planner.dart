@@ -3,6 +3,7 @@ import 'package:gym_app/models/exercise.dart'; // Import your Exercise model
 import 'package:gym_app/models/set.dart';
 import 'package:provider/provider.dart';
 import 'components/add_exercise_modal.dart';
+import 'components/confirm_workout_dialog.dart';
 import 'providers/planned_workout_provider.dart';
 
 class SetsPlanner extends StatefulWidget {
@@ -56,7 +57,7 @@ class _SetsPlannerState extends State<SetsPlanner> {
     return Scaffold(
       appBar: AppBar(
         title: const Text(
-          'Sets planner',
+          'Planner - sets',
         ),
       ),
       body: Padding(
@@ -70,6 +71,8 @@ class _SetsPlannerState extends State<SetsPlanner> {
                 style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
               ),
             ),
+            Text(
+                'Workout type: ${plannedWorkoutProvider.plannedWorkout!.type}'),
             Expanded(
               child: ListView.builder(
                 itemCount: widget.selectedExercises.length,
@@ -102,16 +105,53 @@ class _SetsPlannerState extends State<SetsPlanner> {
                                 ),
                               ),
                               onPressed: () async {
-                                final newSet = await showModalBottomSheet<Set>(
-                                  context: context,
-                                  isScrollControlled: true,
-                                  builder: (BuildContext context) {
-                                    return AddExerciseModal(exercise: exercise);
-                                  },
-                                );
-
-                                if (newSet != null) {
-                                  plannedWorkoutProvider.addSet(newSet);
+                                if (sets.isNotEmpty) {
+                                  // If sets exist, handle editing
+                                  showModalBottomSheet(
+                                    context: context,
+                                    isScrollControlled: true,
+                                    builder: (BuildContext context) {
+                                      return FractionallySizedBox(
+                                        heightFactor: 0.7,
+                                        child: AddExerciseModal(
+                                          exercise: exercise,
+                                          existingSet: sets
+                                              .first, // Pass the existing set for editing
+                                        ),
+                                      );
+                                    },
+                                  ).then((updatedSet) {
+                                    if (updatedSet != null) {
+                                      // Handle the updated set
+                                      setState(() {
+                                        plannedWorkoutProvider.updateSet(
+                                            updatedSet); // You can use the update method you have in the provider
+                                      });
+                                    }
+                                  });
+                                } else {
+                                  // If no sets exist, handle adding new sets
+                                  showModalBottomSheet(
+                                    context: context,
+                                    isScrollControlled: true,
+                                    builder: (BuildContext context) {
+                                      return FractionallySizedBox(
+                                        heightFactor: 0.7,
+                                        child: AddExerciseModal(
+                                          exercise: exercise,
+                                        ),
+                                      );
+                                    },
+                                  ).then((newSet) {
+                                    print(newSet);
+                                    if (newSet != null) {
+                                      // Handle the new set added by the modal
+                                      print('run addSet for provider');
+                                      setState(() {
+                                        plannedWorkoutProvider.addSet(newSet);
+                                      });
+                                    }
+                                  });
                                 }
                               },
                               child: Text(
@@ -158,11 +198,28 @@ class _SetsPlannerState extends State<SetsPlanner> {
                             .isNotEmpty)
                     ? () {
                         // Confirm workout logic here
+                        showDialog(
+                          context: context,
+                          builder: (BuildContext context) {
+                            return const ConfirmWorkoutDialog();
+                          },
+                        );
                       }
-                    : null,
+                    : null, // Button is disabled when this is null
                 style: ElevatedButton.styleFrom(
-                  foregroundColor: Colors.black,
-                  backgroundColor: Colors.yellow,
+                  foregroundColor: plannedWorkoutProvider.selectedExercises
+                          .every((exercise) => plannedWorkoutProvider
+                              .getSetsForExercise(exercise.id)
+                              .isNotEmpty)
+                      ? Colors.black
+                      : Colors.grey, // Gray color when disabled
+                  backgroundColor: plannedWorkoutProvider.selectedExercises
+                          .every((exercise) => plannedWorkoutProvider
+                              .getSetsForExercise(exercise.id)
+                              .isNotEmpty)
+                      ? Colors.yellow
+                      : Colors
+                          .grey[400], // Lighter gray background when disabled
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(8.0),
                   ),

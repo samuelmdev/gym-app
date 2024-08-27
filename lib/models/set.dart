@@ -1,14 +1,14 @@
 // lib/models/Set.dart
 
 class Set {
-  final String id;
+  final String? id;
   final List<int> reps;
   final List<int>? weight;
   final String exercisesId;
   final String? workoutID;
 
   Set({
-    required this.id,
+    this.id,
     required this.reps,
     this.weight,
     required this.exercisesId,
@@ -29,4 +29,20 @@ class Set {
         'exercises': exercisesId,
         'workoutID': workoutID,
       };
+
+  Set copyWith({
+    String? id,
+    List<int>? reps,
+    List<int>? weight,
+    String? exercisesId,
+    String? workoutID,
+  }) {
+    return Set(
+      id: id ?? this.id,
+      reps: reps ?? this.reps,
+      weight: weight ?? this.weight,
+      exercisesId: exercisesId ?? this.exercisesId,
+      workoutID: workoutID ?? this.workoutID,
+    );
+  }
 }

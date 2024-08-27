@@ -41,4 +41,87 @@ class WorkoutService {
       throw Exception('Failed to fetch workouts: $e');
     }
   }
+
+  static Future<String?> createWorkout({
+    required String name,
+    required String type,
+    required String userId,
+  }) async {
+    try {
+      // Define the GraphQL mutation
+      String graphQLDocument = '''
+      mutation CreateWorkout(\$name: String!, \$type: String!, \$userId: String!) {
+        createWorkout(input: { name: \$name, type: \$type, userId: \$userId }) {
+          id
+        }
+      }
+    ''';
+
+      // Define the variables for the mutation
+      var variables = {
+        "name": name,
+        "type": type,
+        "userId": userId,
+      };
+
+      // Execute the mutation
+      var request = GraphQLRequest<String>(
+        document: graphQLDocument,
+        variables: variables,
+      );
+
+      var response = await Amplify.API.mutate(request: request).response;
+      print('create workout called: $response');
+
+      // Handle the response
+      if (response.data != null) {
+        final data = jsonDecode(response.data!) as Map<String, dynamic>;
+        return data['createWorkout']['id'] as String?;
+      } else {
+        print('Failed to create workout: ${response.errors}');
+        return null;
+      }
+    } catch (e) {
+      print('Error creating workout: $e');
+      return null;
+    }
+  }
+
+  Future<bool> deleteWorkout(String workoutId) async {
+    try {
+      // Define the GraphQL mutation
+      String graphQLDocument = '''
+      mutation DeleteWorkout(\$id: ID!) {
+        deleteWorkout(input: { id: \$id }) {
+          id
+        }
+      }
+    ''';
+
+      // Define the variables for the mutation
+      var variables = {
+        "id": workoutId,
+      };
+
+      // Execute the mutation
+      var request = GraphQLRequest<String>(
+        document: graphQLDocument,
+        variables: variables,
+      );
+
+      var response = await Amplify.API.mutate(request: request).response;
+
+      // Handle the response
+      if (response.data != null) {
+        print('Workout deleted with ID: $workoutId');
+        return true;
+      } else {
+        print('Failed to delete workout: ${response.errors}');
+        return false;
+      }
+    } catch (e) {
+      print('Error deleting workout: $e');
+      return false;
+    }
+  }
 }
