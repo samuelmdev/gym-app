@@ -6,13 +6,15 @@ import '../models/set.dart';
 class AddExerciseModal extends StatefulWidget {
   final String? workoutId;
   final Exercise? exercise;
-  final Set? existingSet; // Optional parameter for editing an existing set
+  final Set? existingSet;
+  final List<Exercise>? exercises; // Pass the list of exercises
 
   const AddExerciseModal({
     super.key,
     this.workoutId,
     this.exercise,
     this.existingSet,
+    this.exercises, // Make it required
   });
 
   @override
@@ -30,7 +32,6 @@ class _AddExerciseModalState extends State<AddExerciseModal> {
     selectedExercise = widget.exercise;
 
     if (widget.existingSet != null) {
-      // Initialize controllers with existing set values
       _repsControllers = widget.existingSet!.reps
           .map((rep) => TextEditingController(text: rep.toString()))
           .toList();
@@ -40,7 +41,6 @@ class _AddExerciseModalState extends State<AddExerciseModal> {
               .toList()
           : [TextEditingController()];
     } else {
-      // Initialize controllers for a new set
       _repsControllers = [TextEditingController()];
       _weightControllers = [TextEditingController()];
     }
@@ -48,7 +48,6 @@ class _AddExerciseModalState extends State<AddExerciseModal> {
 
   @override
   void dispose() {
-    // Dispose of the controllers when done
     for (var controller in _repsControllers) {
       controller.dispose();
     }
@@ -74,7 +73,12 @@ class _AddExerciseModalState extends State<AddExerciseModal> {
             DropdownButton<Exercise>(
               hint: const Text("Select Exercise"),
               value: selectedExercise,
-              items: [], // Add your exercise list here
+              items: widget.exercises
+                  ?.map((exercise) => DropdownMenuItem<Exercise>(
+                        value: exercise,
+                        child: Text(exercise.name),
+                      ))
+                  .toList(),
               onChanged: (newValue) {
                 setState(() {
                   selectedExercise = newValue;

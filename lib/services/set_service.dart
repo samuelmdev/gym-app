@@ -43,9 +43,12 @@ class SetService {
     try {
       // Define the GraphQL mutation
       String graphQLDocument = '''
-      mutation CreateSet(\$reps: [Int]!, \$weight: [Int], \$exerciseId: String!, \$workoutID: String) {
-        createSet(input: { reps: \$reps, weight: \$weight, exercisesId: \$exerciseId, workoutID: \$workoutID }) {
-          id
+      mutation CreateSingleSet(\$input: CreateSingleSetInput!) {
+        createSingleSet(input: \$input) {
+          reps
+          weight
+          workoutID
+          exercises
         }
       }
     ''';
@@ -54,22 +57,24 @@ class SetService {
       var variables = {
         "reps": reps,
         "weight": weight ?? [],
-        "exerciseId": exerciseId,
         "workoutID": workoutId,
+        "exercises": exerciseId,
       };
+      print('set variables: $variables');
 
       // Execute the mutation
       var request = GraphQLRequest<String>(
         document: graphQLDocument,
-        variables: variables,
+        variables: {'input': variables},
       );
 
       var response = await Amplify.API.mutate(request: request).response;
+      print('create single set called: $response');
 
       // Handle the response
       if (response.data != null) {
         final data = jsonDecode(response.data!) as Map<String, dynamic>;
-        return data['createSet']['id'] as String?;
+        return data['createSingleSet']['id'] as String?;
       } else {
         print('Failed to create set: ${response.errors}');
         return null;
@@ -84,8 +89,8 @@ class SetService {
     try {
       // Define the GraphQL mutation
       String graphQLDocument = '''
-      mutation DeleteSet(\$id: ID!) {
-        deleteSet(input: { id: \$id }) {
+      mutation DeleteSingleSet(\$id: ID!) {
+        deleteSingleSet(input: { id: \$id }) {
           id
         }
       }

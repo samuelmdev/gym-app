@@ -27,6 +27,7 @@ class PlannedWorkoutProvider with ChangeNotifier {
     // _selectedExercises.clear();
     // _exerciseSets.clear();
     notifyListeners();
+    print('planned workout created: ${_plannedWorkout!.userId}');
   }
 
   // Function to add an exercise to the workout plan
@@ -108,14 +109,20 @@ class PlannedWorkoutProvider with ChangeNotifier {
     if (_plannedWorkout == null) return;
 
     try {
-      // Create the workout and get the newly created workout ID
+      // Step 1: Create the workout and get the newly created workout ID
       final String? workoutId = await WorkoutService.createWorkout(
-          name: _plannedWorkout!.name,
-          type: _plannedWorkout!.type,
-          userId: _plannedWorkout!.userId);
-      print('save workout run in provider');
+        name: _plannedWorkout!.name,
+        type: _plannedWorkout!.type,
+        userId: _plannedWorkout!.userId,
+      );
+      print('Workout created with ID: $workoutId');
 
-      // If workout creation is successful, save the sets
+      // Check if workout creation was successful
+      if (workoutId == null) {
+        throw Exception('Failed to create workout');
+      }
+
+      // Step 2: Save the sets
       for (var entry in _exerciseSets.entries) {
         final exerciseId = entry.key;
         final sets = entry.value;
@@ -132,19 +139,27 @@ class PlannedWorkoutProvider with ChangeNotifier {
 
           // Save each set using the SetService
           await SetService.createSingleSet(
-              reps: newSet.reps,
-              weight: newSet.weight,
-              exerciseId: newSet.exercisesId,
-              workoutId: newSet.workoutID);
+            reps: newSet.reps,
+            weight: newSet.weight,
+            exerciseId: newSet.exercisesId,
+            workoutId: newSet.workoutID,
+          );
+          print('Set saved: ${newSet.reps} reps at ${newSet.weight} weight');
         }
       }
 
-      // Notify listeners if needed
+      // Step 3: Notify listeners if needed
       notifyListeners();
+      print('All sets saved successfully.');
     } catch (e) {
       // Handle any errors
       debugPrint('Error saving workout: $e');
-      // Optionally notify listeners or handle the error accordingly
+    } finally {
+      // Step 4: Clear the data after all operations are complete
+      _plannedWorkout = null;
+      _selectedExercises.clear();
+      _exerciseSets.clear();
+      notifyListeners();
     }
   }
 }

@@ -50,9 +50,12 @@ class WorkoutService {
     try {
       // Define the GraphQL mutation
       String graphQLDocument = '''
-      mutation CreateWorkout(\$name: String!, \$type: String!, \$userId: String!) {
-        createWorkout(input: { name: \$name, type: \$type, userId: \$userId }) {
+      mutation CreateWorkout(\$input: CreateWorkoutInput!) {
+        createWorkout(input: \$input) {
           id
+          name
+          type
+          userWorkoutsId
         }
       }
     ''';
@@ -61,13 +64,14 @@ class WorkoutService {
       var variables = {
         "name": name,
         "type": type,
-        "userId": userId,
+        "userWorkoutsId": userId,
       };
+      print('Creating workout with input: $variables');
 
       // Execute the mutation
       var request = GraphQLRequest<String>(
         document: graphQLDocument,
-        variables: variables,
+        variables: {'input': variables},
       );
 
       var response = await Amplify.API.mutate(request: request).response;
