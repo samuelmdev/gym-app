@@ -45,4 +45,11 @@ class ReadyWorkoutProvider extends ChangeNotifier {
           startTimestamp.day == date.day;
     }).toList();
   }
+
+  List<ReadyWorkout> getReadyWorkoutsByTimeFrame(DateTime start, DateTime end) {
+    return _readyWorkouts.where((workout) {
+      DateTime startTimestamp = workout.startTimestamp!.toDateTime();
+      return startTimestamp.isAfter(start) && startTimestamp.isBefore(end);
+    }).toList();
+  }
 }

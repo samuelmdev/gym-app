@@ -85,7 +85,7 @@ class SetService {
     }
   }
 
-  Future<bool> deleteSingleSet(String setId) async {
+  static Future<bool> deleteSingleSet(String setId) async {
     try {
       // Define the GraphQL mutation
       String graphQLDocument = '''

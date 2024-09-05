@@ -4,12 +4,22 @@ import '../models/completed_workout.dart';
 import '../models/workout.dart';
 import '../models/exercise.dart';
 import '../models/set.dart';
+import '../overview_screen.dart';
 
 class CompletedWorkoutProvider extends ChangeNotifier {
   CompletedWorkout _completedWorkout = CompletedWorkout(
       weightLifted: 0, bodyweightReps: 0, doneSets: 0, totalReps: 0);
 
   CompletedWorkout get completedWorkout => _completedWorkout;
+
+  // Example method to get workouts for the selected time frame
+  List<CompletedWorkout>? getWorkoutsForTimeFrame(
+      TimeFrame timeFrame, DateTime currentDate) {
+    return null;
+
+    // Logic to filter workouts based on the time frame and currentDate
+    // For example, filter workouts for the current week, month, or year.
+  }
 
   void startWorkout(String userId, Workout? workout) {
     _completedWorkout = CompletedWorkout(

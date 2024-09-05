@@ -91,7 +91,7 @@ class WorkoutService {
     }
   }
 
-  Future<bool> deleteWorkout(String workoutId) async {
+  static Future<bool> deleteWorkout(String workoutId) async {
     try {
       // Define the GraphQL mutation
       String graphQLDocument = '''
