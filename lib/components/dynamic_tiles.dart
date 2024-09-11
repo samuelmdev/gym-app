@@ -10,7 +10,7 @@ class DynamicTiles extends StatefulWidget {
 class _DynamicTilesState extends State<DynamicTiles> {
   int _selectedIndex = 0;
 
-  final List<String> _titles = ['Schedule', 'Progress', 'Overview'];
+  final List<String> _titles = ['Schedule', 'Activity', 'Metrics'];
   final List<String> _routes = ['/schedule', '/progress', '/overview'];
 
   void _onSwipeLeft() {
@@ -79,9 +79,9 @@ class _DynamicTilesState extends State<DynamicTiles> {
     switch (label) {
       case 'Schedule':
         return Icons.schedule;
-      case 'Progress':
+      case 'Activity':
         return Icons.assessment;
-      case 'Overview':
+      case 'Metrics':
         return Icons.dashboard;
       default:
         return Icons.help;

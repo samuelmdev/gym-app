@@ -1,12 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../providers/ready_workout_provider.dart';
+import 'package:intl/intl.dart';
 import 'components/grey_container.dart';
-import 'models/ready_workout.dart'; // Assuming GreyContainer or CustomContainer exists
+import 'models/ready_workout.dart'; // For formatting dates
 
 enum TimeFrame { thisWeek, thisMonth, thisYear }
 
 class OverviewScreen extends StatefulWidget {
+  const OverviewScreen({super.key});
+
   @override
   _OverviewScreenState createState() => _OverviewScreenState();
 }
@@ -14,6 +17,8 @@ class OverviewScreen extends StatefulWidget {
 class _OverviewScreenState extends State<OverviewScreen> {
   TimeFrame _selectedTimeFrame = TimeFrame.thisWeek;
   DateTime _currentDate = DateTime.now();
+  final DateTime _minDate = DateTime.now()
+      .subtract(const Duration(days: 182)); // Max half a year back
 
   // Helper methods for getting start and end of the selected timeframe
   DateTime getStartOfTimeFrame() {
@@ -42,14 +47,46 @@ class _OverviewScreenState extends State<OverviewScreen> {
     return DateTime.now();
   }
 
+  String getTimeFrameLabel() {
+    if (_selectedTimeFrame == TimeFrame.thisWeek) {
+      if (_currentDate.isAtSameMomentAs(DateTime.now())) {
+        return "This Week";
+      } else if (_currentDate
+          .isAfter(DateTime.now().subtract(const Duration(days: 7)))) {
+        return "Last Week";
+      } else {
+        return "${DateFormat.yMMMd().format(getStartOfTimeFrame())} - ${DateFormat.yMMMd().format(getEndOfTimeFrame())}";
+      }
+    } else if (_selectedTimeFrame == TimeFrame.thisMonth) {
+      if (_currentDate.month == DateTime.now().month) {
+        return "This Month";
+      } else {
+        return DateFormat.MMMM().format(_currentDate); // Show month name
+      }
+    } else if (_selectedTimeFrame == TimeFrame.thisYear) {
+      if (_currentDate.year == DateTime.now().year) {
+        return "This Year";
+      } else {
+        return "${_currentDate.year}";
+      }
+    }
+    return "";
+  }
+
   void _previousTimeFrame() {
     setState(() {
       if (_selectedTimeFrame == TimeFrame.thisWeek) {
-        _currentDate = _currentDate.subtract(const Duration(days: 7));
+        if (_currentDate.subtract(const Duration(days: 7)).isAfter(_minDate)) {
+          _currentDate = _currentDate.subtract(const Duration(days: 7));
+        }
       } else if (_selectedTimeFrame == TimeFrame.thisMonth) {
-        _currentDate = DateTime(_currentDate.year, _currentDate.month - 1);
+        if (_currentDate.subtract(const Duration(days: 30)).isAfter(_minDate)) {
+          _currentDate = DateTime(_currentDate.year, _currentDate.month - 1);
+        }
       } else if (_selectedTimeFrame == TimeFrame.thisYear) {
-        _currentDate = DateTime(_currentDate.year - 1);
+        if (_currentDate.year > _minDate.year) {
+          _currentDate = DateTime(_currentDate.year - 1);
+        }
       }
     });
   }
@@ -57,11 +94,24 @@ class _OverviewScreenState extends State<OverviewScreen> {
   void _nextTimeFrame() {
     setState(() {
       if (_selectedTimeFrame == TimeFrame.thisWeek) {
-        _currentDate = _currentDate.add(const Duration(days: 7));
+        // Move to the next week, but not beyond the current week
+        if (_currentDate
+            .add(const Duration(days: 7))
+            .isBefore(DateTime.now())) {
+          _currentDate = _currentDate.add(const Duration(days: 7));
+        }
       } else if (_selectedTimeFrame == TimeFrame.thisMonth) {
-        _currentDate = DateTime(_currentDate.year, _currentDate.month + 1);
+        // Move to the next month, but not beyond the current month
+        if (_currentDate
+            .add(const Duration(days: 30))
+            .isBefore(DateTime.now())) {
+          _currentDate = DateTime(_currentDate.year, _currentDate.month + 1);
+        }
       } else if (_selectedTimeFrame == TimeFrame.thisYear) {
-        _currentDate = DateTime(_currentDate.year + 1);
+        // Move to the next year, but not beyond the current year
+        if (_currentDate.year < DateTime.now().year) {
+          _currentDate = DateTime(_currentDate.year + 1);
+        }
       }
     });
   }
@@ -82,19 +132,25 @@ class _OverviewScreenState extends State<OverviewScreen> {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Workout Overview'),
+        title: const Text('Workout Metrics'),
       ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
         child: Column(
           children: <Widget>[
+            // Dropdown and navigation arrows
             Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: <Widget>[
-                IconButton(
-                  icon: const Icon(Icons.arrow_back),
+                // Left arrow with text
+                TextButton.icon(
                   onPressed: _previousTimeFrame,
+                  icon: const Icon(Icons.arrow_back),
+                  label: const Text('Previous'),
                 ),
+                const SizedBox(width: 16),
+
+                // Timeframe selection dropdown
                 DropdownButton<TimeFrame>(
                   value: _selectedTimeFrame,
                   items: const [
@@ -117,12 +173,26 @@ class _OverviewScreenState extends State<OverviewScreen> {
                     });
                   },
                 ),
-                IconButton(
-                  icon: const Icon(Icons.arrow_forward),
-                  onPressed: _nextTimeFrame,
-                ),
+                const SizedBox(width: 16),
+
+                // Right arrow with text (only visible if there is a future timeframe to navigate to)
+                _currentDate.isBefore(DateTime.now())
+                    ? TextButton.icon(
+                        onPressed: _nextTimeFrame,
+                        icon: const Icon(Icons.arrow_forward),
+                        label: const Text('Next'),
+                      )
+                    : const SizedBox(), // Empty widget if no future timeframe exists
               ],
             ),
+
+            // Display selected timeframe label
+            const SizedBox(height: 16),
+            Text(
+              'Selected Time Frame: ${getTimeFrameLabel()}',
+              style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+            ),
+
             const SizedBox(height: 20),
 
             // Display workouts or message when no workouts are available

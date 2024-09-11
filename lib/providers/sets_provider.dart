@@ -5,7 +5,7 @@ import '../services/set_service.dart';
 
 class SetsProvider with ChangeNotifier {
   List<Set> _sets = [];
-  Map<String, List<Set>> _exerciseSets = {};
+  final Map<String, List<Set>> _exerciseSets = {};
 
   List<Set> get sets => _sets;
 

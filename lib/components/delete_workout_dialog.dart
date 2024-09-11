@@ -11,8 +11,7 @@ class DeleteWorkoutDialog extends StatelessWidget {
   final List<Set> sets; // Pass sets related to this workout
 
   const DeleteWorkoutDialog(
-      {Key? key, required this.workout, required this.sets})
-      : super(key: key);
+      {super.key, required this.workout, required this.sets});
 
   @override
   Widget build(BuildContext context) {
