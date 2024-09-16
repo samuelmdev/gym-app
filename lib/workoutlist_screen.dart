@@ -7,6 +7,7 @@ import '../providers/exercises_provider.dart';
 import '../providers/sets_provider.dart';
 import '../providers/workouts_provider.dart';
 import 'components/delete_workout_dialog.dart';
+import 'providers/planned_workout_provider.dart';
 
 class WorkoutList extends StatefulWidget {
   const WorkoutList({super.key});
@@ -20,6 +21,7 @@ class _WorkoutListState extends State<WorkoutList> {
   List<Exercise> exercises = [];
   int? selectedWorkoutIndex;
   Map<String, List<Set>> workoutSets = {}; // Cache for fetched sets
+  late String userId;
 
   @override
   void initState() {
@@ -31,6 +33,12 @@ class _WorkoutListState extends State<WorkoutList> {
         Provider.of<ExercisesProvider>(context, listen: false);
     workouts = workoutProvider.workouts!; // Fetch workouts
     exercises = exercisesProvider.exercises!; // Fetch exercises
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    userId = ModalRoute.of(context)!.settings.arguments as String;
   }
 
   // Function to fetch sets for a workout
@@ -140,7 +148,39 @@ class _WorkoutListState extends State<WorkoutList> {
                                   children: [
                                     TextButton(
                                       onPressed: () {
-                                        // Edit button logic
+                                        // Add selected workout to PlannedWorkoutProvider
+                                        PlannedWorkoutProvider
+                                            plannedWorkoutProvider =
+                                            Provider.of<PlannedWorkoutProvider>(
+                                                context,
+                                                listen: false);
+
+                                        // Assuming `workout` is the workout you want to edit
+                                        plannedWorkoutProvider
+                                            .createPlannedWorkout(
+                                                workout.id,
+                                                workout.name,
+                                                workout.type,
+                                                workout.userId);
+
+                                        // Iterate over the sets and add both sets and exercises to the provider
+                                        workoutSets[workout.id]?.forEach((set) {
+                                          // Add the set to the provider
+                                          plannedWorkoutProvider.addSet(set);
+
+                                          // Find the exercise related to this set
+                                          Exercise? setExercise =
+                                              exercises.firstWhere((exercise) =>
+                                                  exercise.id ==
+                                                  set.exercisesId);
+                                          // Add the exercise to the provider if it's found
+                                          plannedWorkoutProvider
+                                              .addExercise(setExercise);
+                                        });
+                                        // Navigate to the planner screen
+                                        Navigator.of(context).pushNamed(
+                                            '/planner',
+                                            arguments: userId);
                                       },
                                       style: TextButton.styleFrom(
                                         backgroundColor: Colors.grey[900],

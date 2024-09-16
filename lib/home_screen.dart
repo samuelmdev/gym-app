@@ -190,8 +190,9 @@ class _HomeScreenState extends State<HomeScreen> {
                             ),
                             const SizedBox(height: 10),
                             ElevatedButton.icon(
-                              onPressed: () => Navigator.of(context)
-                                  .pushNamed('/workoutsList'),
+                              onPressed: () => Navigator.of(context).pushNamed(
+                                  '/workoutsList',
+                                  arguments: userId),
                               style: ElevatedButton.styleFrom(
                                 foregroundColor: Colors.yellow,
                                 backgroundColor: Colors.black,

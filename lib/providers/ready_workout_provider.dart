@@ -52,4 +52,27 @@ class ReadyWorkoutProvider extends ChangeNotifier {
       return startTimestamp.isAfter(start) && startTimestamp.isBefore(end);
     }).toList();
   }
+
+// Group workouts by date for a given time frame
+  Map<DateTime, List<ReadyWorkout>> getReadyWorkoutsByDay(
+      DateTime start, DateTime end) {
+    Map<DateTime, List<ReadyWorkout>> groupedWorkouts = {};
+
+    // Iterate through each day from start to end (inclusive)
+    DateTime currentDate = start;
+    while (!currentDate.isAfter(end)) {
+      // Get workouts for the current date
+      List<ReadyWorkout> workoutsForDate = getReadyWorkoutsByDate(currentDate);
+
+      // If there are workouts for the current date, add them to the map
+      if (workoutsForDate.isNotEmpty) {
+        groupedWorkouts[currentDate] = workoutsForDate;
+      }
+
+      // Move to the next day
+      currentDate = currentDate.add(const Duration(days: 1));
+    }
+
+    return groupedWorkouts;
+  }
 }

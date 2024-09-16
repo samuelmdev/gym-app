@@ -13,6 +13,27 @@ class PlannerScreen extends StatefulWidget {
 }
 
 class _PlannerScreenState extends State<PlannerScreen> {
+  PlannedWorkoutProvider? plannedWorkoutProvider;
+
+  @override
+  void initState() {
+    super.initState();
+    plannedWorkoutProvider =
+        Provider.of<PlannedWorkoutProvider>(context, listen: false);
+
+    // Determine if it's a new workout or editing an existing one
+    if (plannedWorkoutProvider!.plannedWorkout != null) {
+      /* New workout: Initialize an empty workout
+      _initializeNewWorkout();
+    } else { */
+      // Existing workout: Load the data from provider
+      _initializePlanner();
+    }
+
+    // Handle any specific workout type logic
+    _handleWorkoutType();
+  }
+
   Map<String, bool> selectedTypes = {};
   Map<String, bool> selectedTargets = {};
   List<Exercise> filteredExercises = [];
@@ -37,6 +58,22 @@ class _PlannerScreenState extends State<PlannerScreen> {
       };
       _filterExercises(exercises);
     }
+  }
+
+  /// Initializes the screen with the existing data from the provider (for editing)
+  void _initializePlanner() {
+    // Access the planned workout, selected exercises, and sets from the provider
+    final plannedWorkout = plannedWorkoutProvider?.plannedWorkout;
+    selectedExercises = plannedWorkoutProvider!.selectedExercises;
+
+    // Update your UI with the existing workout data
+    if (plannedWorkout != null) {
+      setState(() {
+        // Populate your state with the data for editing
+        // Example: Updating exercise lists, sets, or other UI components
+      });
+    }
+    _filterExercises(selectedExercises);
   }
 
   void _filterExercises(List<Exercise> exercises) {
@@ -111,8 +148,8 @@ class _PlannerScreenState extends State<PlannerScreen> {
   @override
   Widget build(BuildContext context) {
     final exercises = Provider.of<ExercisesProvider>(context).exercises;
-    final exercisesProvider = Provider.of<ExercisesProvider>(context);
     final plannedWorkoutProvider = Provider.of<PlannedWorkoutProvider>(context);
+    print('planner exercises: $exercises');
 
     return Scaffold(
       appBar: AppBar(

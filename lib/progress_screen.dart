@@ -1,20 +1,23 @@
 import 'package:flutter/material.dart';
 import 'package:fl_chart/fl_chart.dart';
 import 'package:gym_app/models/date.dart';
-import 'package:gym_app/utils/timestamp_extension.dart';
+import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 import 'models/ready_workout.dart';
 import 'providers/ready_workout_provider.dart';
 
 class ProgressScreen extends StatefulWidget {
+  const ProgressScreen({super.key});
+
   @override
   _ProgressScreenState createState() => _ProgressScreenState();
 }
 
 class _ProgressScreenState extends State<ProgressScreen> {
+  Map<DateTime, List<ReadyWorkout>> _groupedWorkouts = {};
   int _selectedWeek = 0; // 0 means current week, -1 is previous week, etc.
   int? _touchedIndex; // For detecting user touches
-  List<ReadyWorkout> _selectedWorkouts = [];
+  String _selectedWeekText = "This Week";
 
   @override
   void initState() {
@@ -23,18 +26,29 @@ class _ProgressScreenState extends State<ProgressScreen> {
   }
 
   // Load workouts for the selected week
+  // Load workouts for the selected week
   void _loadWorkoutDataForWeek() {
     final readyWorkoutProvider =
         Provider.of<ReadyWorkoutProvider>(context, listen: false);
     DateTime now = DateTime.now();
-    DateTime startOfWeek = now
+    DateTime startOfWeek = DateTime(now.year, now.month, now.day)
         .subtract(Duration(days: now.weekday - 1))
         .add(Duration(days: _selectedWeek * 7));
     DateTime endOfWeek = startOfWeek.add(const Duration(days: 6));
 
-    // Fetch workouts within the selected week
-    _selectedWorkouts = readyWorkoutProvider.getReadyWorkoutsByTimeFrame(
-        startOfWeek, endOfWeek);
+    // Fetch workouts within the selected week, grouped by date
+    Map<DateTime, List<ReadyWorkout>> groupedWorkouts =
+        readyWorkoutProvider.getReadyWorkoutsByDay(startOfWeek, endOfWeek);
+
+    // Normalize the dates (set time to midnight)
+    groupedWorkouts = groupedWorkouts.map((date, workouts) {
+      DateTime normalizedDate = DateTime(date.year, date.month, date.day);
+      return MapEntry(normalizedDate, workouts);
+    });
+
+    setState(() {
+      _groupedWorkouts = groupedWorkouts;
+    });
   }
 
   // Calculate the volume based on workout data
@@ -54,23 +68,30 @@ class _ProgressScreenState extends State<ProgressScreen> {
   List<BarChartGroupData> _getBarChartData() {
     List<BarChartGroupData> barGroups = [];
 
-    for (int i = 0; i < 7; i++) {
-      ReadyWorkout? workoutForDay =
-          _selectedWorkouts.length > i ? _selectedWorkouts[i] : null;
-      double volume =
-          workoutForDay != null ? _calculateVolume(workoutForDay) : 0;
+    // Initialize volumes for each day of the week (0: Monday, 6: Sunday)
+    List<double> volumes = List<double>.filled(7, 0.0);
 
-      // Ensure minimum bar height only for days with data
-      double barHeight = volume > 0 ? volume : 0;
+    _groupedWorkouts.forEach((date, workouts) {
+      int dayIndex = date.weekday - 1; // Monday = 1 -> index 0
+
+      double totalVolume = 0;
+      for (var workout in workouts) {
+        totalVolume += _calculateVolume(workout);
+      }
+
+      volumes[dayIndex] = totalVolume; // Set the volume for the specific day
+    });
+
+    // Create bar data for each day of the week
+    for (int i = 0; i < 7; i++) {
+      double barHeight = volumes[i] > 0 ? volumes[i] : 0;
 
       barGroups.add(
         BarChartGroupData(
           x: i,
           barRods: [
             BarChartRodData(
-              toY: barHeight > 0
-                  ? barHeight
-                  : 0, // Use bar height, or set to 0 for no data
+              toY: barHeight > 0 ? barHeight : 0,
               color: Colors.yellow,
               borderRadius: BorderRadius.circular(8),
               width: 20,
@@ -84,6 +105,41 @@ class _ProgressScreenState extends State<ProgressScreen> {
     return barGroups;
   }
 
+  void _handleWeekText() {
+    int numOfWeeks(int year) {
+      DateTime dec28 = DateTime(year, 12, 28);
+      int dayOfDec28 = int.parse(DateFormat("D").format(dec28));
+      return ((dayOfDec28 - dec28.weekday + 10) / 7).floor();
+    }
+
+    /// Calculates week number from a date as per https://en.wikipedia.org/wiki/ISO_week_date#Calculation
+    int getWeekNumber(DateTime date) {
+      int dayOfYear = int.parse(DateFormat("D").format(date));
+      int woy = ((dayOfYear - date.weekday + 10) / 7).floor();
+      if (woy < 1) {
+        woy = numOfWeeks(date.year - 1);
+      } else if (woy > numOfWeeks(date.year)) {
+        woy = 1;
+      }
+      return woy;
+    }
+
+    int weekNumber = getWeekNumber(DateTime.now()) + _selectedWeek;
+    if (_selectedWeek == 0) {
+      setState(() {
+        _selectedWeekText = "This Week";
+      });
+    } else if (_selectedWeek == -1) {
+      setState(() {
+        _selectedWeekText = "Last Week";
+      });
+    } else {
+      setState(() {
+        _selectedWeekText = 'Week $weekNumber';
+      });
+    }
+  }
+
   // Handling user touch on the bars
   void _handleBarTouch(int index) {
     setState(() {
@@ -93,11 +149,24 @@ class _ProgressScreenState extends State<ProgressScreen> {
 
   // Function to display workout details below the chart
   Widget _displayWorkoutDetails() {
-    if (_touchedIndex == null || _selectedWorkouts.length <= _touchedIndex!) {
+    if (_touchedIndex == null) {
       return const SizedBox.shrink();
     }
 
-    ReadyWorkout selectedWorkout = _selectedWorkouts[_touchedIndex!];
+    DateTime now = DateTime.now();
+    DateTime startOfWeek = now
+        .subtract(Duration(days: now.weekday - 1))
+        .add(Duration(days: _selectedWeek * 7));
+
+    DateTime selectedDate = startOfWeek.add(Duration(days: _touchedIndex!));
+    selectedDate =
+        DateTime(selectedDate.year, selectedDate.month, selectedDate.day);
+
+    if (!_groupedWorkouts.containsKey(selectedDate)) {
+      return const SizedBox.shrink();
+    }
+
+    List<ReadyWorkout> selectedWorkouts = _groupedWorkouts[selectedDate]!;
     const days = [
       'Monday',
       'Tuesday',
@@ -107,39 +176,49 @@ class _ProgressScreenState extends State<ProgressScreen> {
       'Saturday',
       'Sunday'
     ];
-    String formattedDate = CustomDateUtils.formatDate(
-        selectedWorkout.startTimestamp!.toDateTime());
+    String formattedDate = CustomDateUtils.formatDate(selectedDate);
+
     return Container(
       padding: const EdgeInsets.all(16.0),
       margin: const EdgeInsets.only(top: 16.0),
       decoration: BoxDecoration(
-        color: Colors.grey[800],
+        color: Colors.grey[900],
         borderRadius: BorderRadius.circular(10),
       ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            'Workout Details for ${days[_touchedIndex!]},',
-            style: const TextStyle(
-                fontSize: 16, fontWeight: FontWeight.bold, color: Colors.white),
-          ),
-          Text(
-            formattedDate,
-            style: const TextStyle(fontSize: 16, color: Colors.white),
-          ),
-          const SizedBox(height: 8),
-          Text('Duration: ${selectedWorkout.duration ?? 0} minutes',
-              style: const TextStyle(color: Colors.white)),
-          Text('Total Sets: ${selectedWorkout.doneSets}',
-              style: const TextStyle(color: Colors.white)),
-          Text('Weight Lifted: ${selectedWorkout.weightLifted} kg',
-              style: const TextStyle(color: Colors.white)),
-          Text('Bodyweight Reps: ${selectedWorkout.bodyweightReps}',
-              style: const TextStyle(color: Colors.white)),
-          Text('Total Reps: ${selectedWorkout.totalReps}',
-              style: const TextStyle(color: Colors.white)),
-        ],
+      child: SingleChildScrollView(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              'Workout Details for ${days[_touchedIndex!]},',
+              style: const TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.white),
+            ),
+            Text(
+              formattedDate,
+              style: const TextStyle(fontSize: 16, color: Colors.white),
+            ),
+            const SizedBox(height: 8),
+            ...selectedWorkouts.map((workout) => Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Divider(color: Colors.white),
+                    Text('Duration: ${workout.duration ?? 0} minutes',
+                        style: const TextStyle(color: Colors.white)),
+                    Text('Total Sets: ${workout.doneSets}',
+                        style: const TextStyle(color: Colors.white)),
+                    Text('Weight Lifted: ${workout.weightLifted} kg',
+                        style: const TextStyle(color: Colors.white)),
+                    Text('Bodyweight Reps: ${workout.bodyweightReps}',
+                        style: const TextStyle(color: Colors.white)),
+                    Text('Total Reps: ${workout.totalReps}',
+                        style: const TextStyle(color: Colors.white)),
+                  ],
+                )),
+          ],
+        ),
       ),
     );
   }
@@ -159,17 +238,24 @@ class _ProgressScreenState extends State<ProgressScreen> {
               children: [
                 IconButton(
                   icon: const Icon(Icons.arrow_back),
-                  onPressed: () {
-                    setState(() {
-                      _selectedWeek--;
-                      _loadWorkoutDataForWeek();
-                    });
-                    setState(() {
-                      _touchedIndex = null;
-                    });
-                  },
+                  onPressed: _selectedWeek > -10
+                      ? () {
+                          setState(() {
+                            _selectedWeek--;
+                            _loadWorkoutDataForWeek();
+                            _handleWeekText();
+                            _touchedIndex = null;
+                          });
+                        }
+                      : null,
                 ),
-                Text('Week $_selectedWeek'),
+                Text(
+                  _selectedWeekText,
+                  style: const TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.white),
+                ),
                 IconButton(
                   icon: const Icon(Icons.arrow_forward),
                   onPressed: _selectedWeek < 0
@@ -177,8 +263,7 @@ class _ProgressScreenState extends State<ProgressScreen> {
                           setState(() {
                             _selectedWeek++;
                             _loadWorkoutDataForWeek();
-                          });
-                          setState(() {
+                            _handleWeekText();
                             _touchedIndex = null;
                           });
                         }
@@ -196,6 +281,11 @@ class _ProgressScreenState extends State<ProgressScreen> {
                 alignment: BarChartAlignment.spaceEvenly,
                 barGroups: _getBarChartData(),
                 titlesData: FlTitlesData(
+                  topTitles: const AxisTitles(
+                    sideTitles: SideTitles(
+                      showTitles: false, // Hide top titles
+                    ),
+                  ),
                   bottomTitles: AxisTitles(
                     sideTitles: SideTitles(
                       showTitles: true,
@@ -212,13 +302,6 @@ class _ProgressScreenState extends State<ProgressScreen> {
                 gridData: const FlGridData(show: false), // Hide grid
                 barTouchData: BarTouchData(
                   touchCallback: (FlTouchEvent event, barTouchResponse) {
-                    /* if (!event.isInterestedForInteractions ||
-                        barTouchResponse == null) {
-                      setState(() {
-                        _touchedIndex = null;
-                      });
-                      return;
-                    } */
                     setState(() {
                       _touchedIndex =
                           barTouchResponse?.spot?.touchedBarGroupIndex;
@@ -228,13 +311,13 @@ class _ProgressScreenState extends State<ProgressScreen> {
               ),
             ),
           ),
-          const SizedBox(
-            height: 10,
-          ),
+          const SizedBox(height: 10),
           // Display selected workout details in a grey box
-          Padding(
-            padding: const EdgeInsets.all(16.0),
-            child: _displayWorkoutDetails(),
+          Expanded(
+            child: Padding(
+              padding: const EdgeInsets.all(16.0),
+              child: _displayWorkoutDetails(),
+            ),
           ),
         ],
       ),
