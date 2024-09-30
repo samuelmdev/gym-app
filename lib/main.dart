@@ -153,7 +153,7 @@ class _MyAppState extends State<MyApp> {
         '/schedule': (context) => const ScheduleScreen(),
         '/workoutsList': (context) => const WorkoutList(),
         '/planner': (context) => const PlannerScreen(),
-        '/progress': (context) => ProgressScreen(),
+        '/progress': (context) => const ProgressScreen(),
         '/overview': (context) => const OverviewScreen(),
         '/profile': (context) => const ProfileScreen(),
         '/setsplanner': (context) => SetsPlanner(

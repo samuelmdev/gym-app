@@ -6,6 +6,7 @@ import 'package:gym_app/models/date.dart';
 import 'package:gym_app/providers/ready_workout_provider.dart';
 import 'package:provider/provider.dart';
 
+import 'models/ready_workout.dart';
 import 'providers/exercises_provider.dart';
 import 'providers/scheduled_workout_provider.dart';
 import 'providers/workouts_provider.dart';
@@ -20,11 +21,99 @@ class HomeScreen extends StatefulWidget {
 
 class _HomeScreenState extends State<HomeScreen> {
   String _username = '';
+  Map<DateTime, List<ReadyWorkout>> _groupedWorkouts = {};
+  final int _selectedWeek = 0;
+  late String userId = '';
+  Map<String, int> stats = {};
 
   @override
   void initState() {
     super.initState();
     _getUsername();
+    _waitUserIdAndLoadWorkouts();
+  }
+
+  Future<void> _waitUserIdAndLoadWorkouts() async {
+    try {
+      // Simulate fetching userId asynchronously, replace with actual database logic
+
+      // ignore: unnecessary_null_comparison
+      while (userId == '') {
+        await Future.delayed(
+            const Duration(milliseconds: 100)); // Check every 100ms
+      }
+
+      if (userId != '') {
+        // Once the userId is fetched, load the workouts
+        _loadWorkouts();
+      }
+    } catch (e) {
+      print('Error fetching userId: $e');
+      // Handle the error
+    }
+  }
+
+  void _loadWorkouts() async {
+    final readyWorkoutProvider =
+        Provider.of<ReadyWorkoutProvider>(context, listen: false);
+    readyWorkoutProvider.fetchReadyWorkouts(userId);
+    DateTime now = DateTime.now();
+    DateTime startOfWeek = DateTime(now.year, now.month, now.day)
+        .subtract(Duration(days: now.weekday - 1))
+        .add(Duration(days: _selectedWeek * 7));
+    DateTime endOfWeek = startOfWeek.add(const Duration(days: 6));
+
+    while (readyWorkoutProvider.readyWorkouts.isEmpty) {
+      await Future.delayed(
+          const Duration(milliseconds: 100)); // Check every 100ms
+    }
+
+    // Fetch workouts within the selected week, grouped by date
+    Map<DateTime, List<ReadyWorkout>> groupedWorkouts =
+        readyWorkoutProvider.getReadyWorkoutsByDay(startOfWeek, endOfWeek);
+
+    // Normalize the dates (set time to midnight)
+    groupedWorkouts = groupedWorkouts.map((date, workouts) {
+      DateTime normalizedDate = DateTime(date.year, date.month, date.day);
+      return MapEntry(normalizedDate, workouts);
+    });
+
+    setState(() {
+      _groupedWorkouts = groupedWorkouts;
+
+      // Calculate statistics
+      _calculateWorkoutStats(groupedWorkouts);
+    });
+    print('home _goupedWorkouts: $groupedWorkouts');
+  }
+
+// Function to calculate stats based on grouped workouts
+  void _calculateWorkoutStats(Map<DateTime, List<ReadyWorkout>> workouts) {
+    int totalDuration = 0;
+    int totalWeightLifted = 0;
+    int totalSetsDone = 0;
+    int totalReps = 0;
+    int totalBodyweightReps = 0;
+
+    workouts.forEach((date, dailyWorkouts) {
+      for (var workout in dailyWorkouts) {
+        totalDuration += workout.duration!.inMinutes;
+        totalWeightLifted += workout.weightLifted;
+        totalSetsDone += workout.doneSets;
+        totalReps += workout.totalReps;
+        totalBodyweightReps += workout.bodyweightReps;
+      }
+    });
+
+    setState(() {
+      stats = {
+        'duration': totalDuration,
+        'weightLifted': totalWeightLifted,
+        'setsDone': totalSetsDone,
+        'totalReps': totalReps,
+        'bodyweightReps': totalBodyweightReps,
+      };
+    });
   }
 
   Future<void> _getUsername() async {
@@ -101,8 +190,6 @@ class _HomeScreenState extends State<HomeScreen> {
 
   @override
   Widget build(BuildContext context) {
-    late String userId;
-
     String formattedDate = CustomDateUtils.formatDate(DateTime.now());
     return Scaffold(
       appBar: AppBar(
@@ -149,7 +236,7 @@ class _HomeScreenState extends State<HomeScreen> {
                             .fetchReadyWorkouts(userId),
                       });
                   return Padding(
-                    padding: const EdgeInsets.all(16.0),
+                    padding: const EdgeInsets.fromLTRB(16, 16, 16, 10),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
@@ -162,7 +249,11 @@ class _HomeScreenState extends State<HomeScreen> {
                           style: const TextStyle(fontSize: 20),
                         ),
                         const SizedBox(height: 40),
-                        const DynamicTiles(),
+                        DynamicTiles(
+                          groupedWorkouts: _groupedWorkouts,
+                          stats: stats,
+                          userId: userId,
+                        ),
                         const SizedBox(height: 40),
                         Column(
                           children: [

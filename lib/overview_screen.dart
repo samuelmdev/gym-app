@@ -143,10 +143,9 @@ class _OverviewScreenState extends State<OverviewScreen> {
               mainAxisAlignment: MainAxisAlignment.center,
               children: <Widget>[
                 // Left arrow with text
-                TextButton.icon(
+                IconButton(
                   onPressed: _previousTimeFrame,
                   icon: const Icon(Icons.arrow_back),
-                  label: const Text('Previous'),
                 ),
                 const SizedBox(width: 16),
 
@@ -156,11 +155,11 @@ class _OverviewScreenState extends State<OverviewScreen> {
                   items: const [
                     DropdownMenuItem(
                       value: TimeFrame.thisWeek,
-                      child: Text('This Week'),
+                      child: Text('Weekly'),
                     ),
                     DropdownMenuItem(
                       value: TimeFrame.thisMonth,
-                      child: Text('This Month'),
+                      child: Text('Monthly'),
                     ),
                     DropdownMenuItem(
                       value: TimeFrame.thisYear,
@@ -177,10 +176,9 @@ class _OverviewScreenState extends State<OverviewScreen> {
 
                 // Right arrow with text (only visible if there is a future timeframe to navigate to)
                 _currentDate.isBefore(DateTime.now())
-                    ? TextButton.icon(
+                    ? IconButton(
                         onPressed: _nextTimeFrame,
                         icon: const Icon(Icons.arrow_forward),
-                        label: const Text('Next'),
                       )
                     : const SizedBox(), // Empty widget if no future timeframe exists
               ],

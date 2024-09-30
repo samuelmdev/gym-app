@@ -1,7 +1,19 @@
 import 'package:flutter/material.dart';
+import 'package:gym_app/components/weekly_calendar.dart';
+import '../models/ready_workout.dart';
+import 'weekly_bar_chart.dart';
+import 'weekly_metrics.dart'; // Import WeeklyBarChart
 
 class DynamicTiles extends StatefulWidget {
-  const DynamicTiles({super.key});
+  final Map<DateTime, List<ReadyWorkout>> groupedWorkouts;
+  final Map<String, dynamic> stats;
+  final String userId;
+
+  const DynamicTiles(
+      {super.key,
+      required this.groupedWorkouts,
+      required this.stats,
+      required this.userId});
 
   @override
   _DynamicTilesState createState() => _DynamicTilesState();
@@ -30,13 +42,13 @@ class _DynamicTilesState extends State<DynamicTiles> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.center,
       children: [
-        /* Text(
-          _titles[_selectedIndex],
-          style: const TextStyle(fontSize: 16),
-        ),
-        const SizedBox(height: 10), */
         GestureDetector(
+          behavior: HitTestBehavior.translucent,
           onTap: () {
+            if (_selectedIndex == 0) {
+              Navigator.of(context)
+                  .pushNamed('/schedule', arguments: widget.userId);
+            }
             Navigator.of(context).pushNamed(_routes[_selectedIndex]);
           },
           onHorizontalDragEnd: (details) {
@@ -55,10 +67,15 @@ class _DynamicTilesState extends State<DynamicTiles> {
               borderRadius: BorderRadius.circular(10),
             ),
             child: Center(
-              child: Text(
-                _titles[_selectedIndex],
-                style: const TextStyle(fontSize: 18, color: Colors.white),
-              ),
+              child: _selectedIndex == 1
+                  ? WeeklyBarChart(
+                      groupedWorkouts:
+                          widget.groupedWorkouts) // Use the WeeklyBarChart
+
+                  : _selectedIndex == 2
+                      ? WeeklyMetrics(
+                          stats: widget.stats) // Show WeeklyMetrics for index 2
+                      : WeeklyCalendar(userId: widget.userId),
             ),
           ),
         ),
