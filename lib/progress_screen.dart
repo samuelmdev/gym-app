@@ -276,40 +276,50 @@ class _ProgressScreenState extends State<ProgressScreen> {
           SizedBox(
             height: MediaQuery.of(context).size.height *
                 0.4, // 40% of screen height
-            child: BarChart(
-              BarChartData(
-                alignment: BarChartAlignment.spaceEvenly,
-                barGroups: _getBarChartData(),
-                titlesData: FlTitlesData(
-                  topTitles: const AxisTitles(
-                    sideTitles: SideTitles(
-                      showTitles: false, // Hide top titles
+            child: _groupedWorkouts.isEmpty
+                ? const Center(
+                    child: Text(
+                      'No Activity for this week',
+                      style: TextStyle(
+                        fontSize: 16,
+                        color: Colors.white, // Adjust the color if needed
+                      ),
+                    ),
+                  )
+                : BarChart(
+                    BarChartData(
+                      alignment: BarChartAlignment.spaceEvenly,
+                      barGroups: _getBarChartData(),
+                      titlesData: FlTitlesData(
+                        topTitles: const AxisTitles(
+                          sideTitles: SideTitles(
+                            showTitles: false, // Hide top titles
+                          ),
+                        ),
+                        bottomTitles: AxisTitles(
+                          sideTitles: SideTitles(
+                            showTitles: true,
+                            getTitlesWidget: (value, meta) {
+                              return Text(days[value.toInt()]);
+                            },
+                          ),
+                        ),
+                        leftTitles: const AxisTitles(
+                          sideTitles: SideTitles(showTitles: false),
+                        ),
+                      ),
+                      borderData: FlBorderData(show: false),
+                      gridData: const FlGridData(show: false), // Hide grid
+                      barTouchData: BarTouchData(
+                        touchCallback: (FlTouchEvent event, barTouchResponse) {
+                          setState(() {
+                            _touchedIndex =
+                                barTouchResponse?.spot?.touchedBarGroupIndex;
+                          });
+                        },
+                      ),
                     ),
                   ),
-                  bottomTitles: AxisTitles(
-                    sideTitles: SideTitles(
-                      showTitles: true,
-                      getTitlesWidget: (value, meta) {
-                        return Text(days[value.toInt()]);
-                      },
-                    ),
-                  ),
-                  leftTitles: const AxisTitles(
-                    sideTitles: SideTitles(showTitles: false),
-                  ),
-                ),
-                borderData: FlBorderData(show: false),
-                gridData: const FlGridData(show: false), // Hide grid
-                barTouchData: BarTouchData(
-                  touchCallback: (FlTouchEvent event, barTouchResponse) {
-                    setState(() {
-                      _touchedIndex =
-                          barTouchResponse?.spot?.touchedBarGroupIndex;
-                    });
-                  },
-                ),
-              ),
-            ),
           ),
           const SizedBox(height: 10),
           // Display selected workout details in a grey box
