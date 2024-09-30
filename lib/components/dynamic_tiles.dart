@@ -48,8 +48,9 @@ class _DynamicTilesState extends State<DynamicTiles> {
             if (_selectedIndex == 0) {
               Navigator.of(context)
                   .pushNamed('/schedule', arguments: widget.userId);
+            } else {
+              Navigator.of(context).pushNamed(_routes[_selectedIndex]);
             }
-            Navigator.of(context).pushNamed(_routes[_selectedIndex]);
           },
           onHorizontalDragEnd: (details) {
             if (details.primaryVelocity! < 0) {

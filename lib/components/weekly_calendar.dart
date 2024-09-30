@@ -31,11 +31,15 @@ class _WeeklyCalendarState extends State<WeeklyCalendar> {
   void didChangeDependencies() {
     super.didChangeDependencies();
     passedWorkoutsCount = Provider.of<ReadyWorkoutProvider>(context)
-        .getReadyWorkoutsByDate(_selectedDay)
-        .length;
+        .getReadyWorkoutsByDay(
+            _getStartOfWeek(_focusedDay), _getEndOfWeek(_focusedDay))
+        .values // Get the lists of workouts (not the dates)
+        .fold(0, (sum, workouts) => sum + workouts.length);
     scheduledWorkoutsCount = Provider.of<ScheduledWorkoutsProvider>(context)
-        .getScheduledWorkoutsForDate(_selectedDay)
-        .length;
+        .getScheduledWorkoutsByDay(
+            _getStartOfWeek(_focusedDay), _getEndOfWeek(_focusedDay))
+        .values // Get the lists of workouts (not the dates)
+        .fold(0, (sum, workouts) => sum + workouts.length);
 
     passedWorkouts = Provider.of<ReadyWorkoutProvider>(context).readyWorkouts;
     scheduledWorkouts =
@@ -44,6 +48,16 @@ class _WeeklyCalendarState extends State<WeeklyCalendar> {
 
   String? selectedWorkout;
   DateTime? selectedDate;
+
+  DateTime _getStartOfWeek(DateTime date) {
+    // Assuming the week starts on Monday
+    return date.subtract(Duration(days: date.weekday - 1));
+  }
+
+  DateTime _getEndOfWeek(DateTime date) {
+    // Week ends on Sunday, which is the 7th day of the week
+    return date.add(Duration(days: 7 - date.weekday));
+  }
 
   Widget _buildEventsMarker(DateTime date) {
     bool hasPassedWorkouts = Provider.of<ReadyWorkoutProvider>(context)

@@ -42,6 +42,29 @@ class ScheduledWorkoutsProvider extends ChangeNotifier {
     }).toList();
   }
 
+  Map<DateTime, List<ScheduledWorkout>> getScheduledWorkoutsByDay(
+      DateTime start, DateTime end) {
+    Map<DateTime, List<ScheduledWorkout>> groupedScheduledWorkouts = {};
+
+    // Iterate through each day from start to end (inclusive)
+    DateTime currentDate = start;
+    while (!currentDate.isAfter(end)) {
+      // Get scheduled workouts for the current date
+      List<ScheduledWorkout> workoutsForDate =
+          getScheduledWorkoutsForDate(currentDate);
+
+      // If there are scheduled workouts for the current date, add them to the map
+      if (workoutsForDate.isNotEmpty) {
+        groupedScheduledWorkouts[currentDate] = workoutsForDate;
+      }
+
+      // Move to the next day
+      currentDate = currentDate.add(const Duration(days: 1));
+    }
+
+    return groupedScheduledWorkouts;
+  }
+
   // Helper method to format DateTime to AWSDate format (YYYY-MM-DD)
   String formatDateToAWSDate(DateTime date) {
     return '${date.toUtc().year.toString().padLeft(4, '0')}-${date.toUtc().month.toString().padLeft(2, '0')}-${date.toUtc().day.toString().padLeft(2, '0')}';
