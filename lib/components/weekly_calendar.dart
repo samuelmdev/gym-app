@@ -7,7 +7,7 @@ import '../providers/scheduled_workout_provider.dart';
 import 'package:table_calendar/table_calendar.dart';
 
 class WeeklyCalendar extends StatefulWidget {
-  WeeklyCalendar({super.key, required this.userId});
+  const WeeklyCalendar({super.key, required this.userId});
   final String userId;
 
   @override

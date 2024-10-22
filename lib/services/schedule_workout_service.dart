@@ -92,6 +92,44 @@ class ScheduledWorkoutService {
 
     return workouts;
   }
+
+  // Mutation for deleting a ScheduledWorkout
+  static Future<void> deleteScheduledWorkout(String id) async {
+    String deleteScheduledWorkoutMutation = '''
+      mutation DeleteScheduledWorkout(\$input: DeleteScheduledWorkoutInput!) {
+        deleteScheduledWorkout(input: \$input) {
+          workoutID
+        }
+      }
+    ''';
+    print("delete scheduled called in service");
+
+    var request = GraphQLRequest<String>(
+      document: deleteScheduledWorkoutMutation,
+      variables: {
+        'input': {
+          'id': id,
+        },
+      },
+    );
+
+    try {
+      // Perform the mutation
+      var response = await Amplify.API.mutate(request: request).response;
+
+      // Check if there are any errors
+      if (response.errors.isNotEmpty) {
+        throw Exception(
+            'Failed to delete scheduled workout: ${response.errors}');
+      }
+
+      // Optionally, print raw response for debugging
+      print('Deleted scheduled workout: ${response.data}');
+    } catch (e) {
+      print('Error deleting scheduled workout: $e');
+      rethrow;
+    }
+  }
 }
 
 

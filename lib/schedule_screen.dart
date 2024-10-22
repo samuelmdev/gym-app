@@ -46,6 +46,59 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
       builder: (BuildContext context) {
         return StatefulBuilder(
           builder: (BuildContext context, StateSetter setModalState) {
+            bool isLoading = false; // Add loading state here
+
+            Future<void> scheduleWorkout() async {
+              if (selectedWorkout == null || selectedDate == null) {
+                // Show an error message if workout or date isn't selected
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(
+                    content: Text('Please select both workout and date'),
+                    backgroundColor: Colors.red,
+                  ),
+                );
+                return;
+              }
+
+              setModalState(() {
+                isLoading = true; // Start loading
+              });
+
+              try {
+                // Call the method to create a scheduled workout
+                await ScheduledWorkoutService.createScheduledWorkout(
+                  date: selectedDate!,
+                  userID: userID, // Ensure this is initialized
+                  workoutID: selectedWorkout!,
+                );
+
+                // Notify the user of success
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(
+                    content: Text('Workout scheduled successfully!'),
+                    backgroundColor: Colors.lightBlue,
+                  ),
+                );
+
+                // Fetch the updated list of scheduled workouts after scheduling
+                await Provider.of<ScheduledWorkoutsProvider>(
+                  context,
+                  listen: false,
+                ).fetchScheduledWorkouts(userID);
+
+                Navigator.pop(context); // Close the modal
+              } catch (e) {
+                print('Error scheduling workout: $e');
+              } finally {
+                // Reset the loading state only if the context is still mounted
+                if (context.mounted) {
+                  setModalState(() {
+                    isLoading = false;
+                  });
+                }
+              }
+            }
+
             return Padding(
               padding: const EdgeInsets.all(16.0),
               child: Column(
@@ -105,49 +158,19 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
                           borderRadius: BorderRadius.circular(8),
                         ),
                       ),
-                      onPressed: () async {
-                        if (selectedWorkout == null || selectedDate == null) {
-                          // If the user hasn't selected a workout or a date
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(
-                              content:
-                                  Text('Please select both workout and date'),
-                              backgroundColor: Colors.red,
-                            ),
-                          );
-                          return;
-                        }
-
-                        try {
-                          await ScheduledWorkoutService.createScheduledWorkout(
-                            date: selectedDate!,
-                            userID:
-                                userID, // Make sure this is initialized correctly
-                            workoutID: selectedWorkout!,
-                          );
-
-                          // Notify the user that the workout has been scheduled successfully
-                          // ignore: use_build_context_synchronously
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(
-                              content: Text('Workout scheduled successfully!'),
-                              backgroundColor: Colors.lightBlue,
-                            ),
-                          );
-
-                          // Fetch the updated list of scheduled workouts after scheduling
-                          await Provider.of<ScheduledWorkoutsProvider>(
-                            context,
-                            listen: false,
-                          ).fetchScheduledWorkouts(userID);
-
-                          Navigator.pop(
-                              context); // Close the modal after success
-                        } catch (e) {
-                          print('Error scheduling workout: $e');
-                        }
-                      },
-                      child: const Text('Schedule'),
+                      // Call the method to schedule workout
+                      onPressed: isLoading ? null : scheduleWorkout,
+                      child: isLoading
+                          ? const SizedBox(
+                              width: 20,
+                              height: 20,
+                              child: CircularProgressIndicator(
+                                strokeWidth: 2,
+                                valueColor:
+                                    AlwaysStoppedAnimation<Color>(Colors.white),
+                              ),
+                            )
+                          : const Text('Schedule'),
                     ),
                   ),
                   const SizedBox(height: 20),

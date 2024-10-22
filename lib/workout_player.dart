@@ -239,7 +239,7 @@ class _WorkoutPlayerState extends State<WorkoutPlayer> {
                                   8), // slightly rounded edges
                             ),
                           ),
-                          onPressed: () {
+                          onPressed: () async {
                             final remainingExercises = sets!.length -
                                 completedWorkout.exercises!.length;
                             if (remainingExercises == 0 &&
@@ -260,7 +260,11 @@ class _WorkoutPlayerState extends State<WorkoutPlayer> {
                                 ),
                               );
                             } else if (remainingExercises == sets.length) {
-                              _showBackDialog();
+                              final bool shouldPop = await _showBackDialog();
+                              if (context.mounted && shouldPop) {
+                                Navigator.pop(
+                                    context); // Pop back to the previous screen
+                              }
                             } else {
                               // Handle End Workout action if necessary
                               showDialog(

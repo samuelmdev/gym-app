@@ -7,6 +7,7 @@ import 'package:gym_app/providers/ready_workout_provider.dart';
 import 'package:provider/provider.dart';
 
 import 'models/ready_workout.dart';
+import 'models/scheduled_workout.dart';
 import 'providers/exercises_provider.dart';
 import 'providers/scheduled_workout_provider.dart';
 import 'providers/workouts_provider.dart';
@@ -25,6 +26,7 @@ class _HomeScreenState extends State<HomeScreen> {
   final int _selectedWeek = 0;
   late String userId = '';
   Map<String, int> stats = {};
+  late List<ScheduledWorkout>? todayScheduledWorkouts = [];
 
   @override
   void initState() {
@@ -46,6 +48,7 @@ class _HomeScreenState extends State<HomeScreen> {
       if (userId != '') {
         // Once the userId is fetched, load the workouts
         _loadWorkouts();
+        await _checkTodayScheduledWorkout();
       }
     } catch (e) {
       print('Error fetching userId: $e');
@@ -85,6 +88,26 @@ class _HomeScreenState extends State<HomeScreen> {
       _calculateWorkoutStats(groupedWorkouts);
     });
     print('home _goupedWorkouts: $groupedWorkouts');
+  }
+
+  Future<void> _checkTodayScheduledWorkout() async {
+    final scheduledWorkoutProvider =
+        Provider.of<ScheduledWorkoutsProvider>(context, listen: false);
+    DateTime today = DateTime.now();
+
+    List<ScheduledWorkout> todayWorkouts =
+        scheduledWorkoutProvider.getScheduledWorkoutsForDate(today);
+
+    if (todayWorkouts.isNotEmpty) {
+      setState(() {
+        todayScheduledWorkouts =
+            todayWorkouts; // Get the first one for simplicity
+      });
+    } else {
+      setState(() {
+        todayScheduledWorkouts = null;
+      });
+    }
   }
 
 // Function to calculate stats based on grouped workouts
@@ -191,6 +214,8 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   Widget build(BuildContext context) {
     String formattedDate = CustomDateUtils.formatDate(DateTime.now());
+    bool hasScheduledWorkout = todayScheduledWorkouts != null;
+
     return Scaffold(
       appBar: AppBar(
         title: const Text(
@@ -234,6 +259,10 @@ class _HomeScreenState extends State<HomeScreen> {
                         Provider.of<ReadyWorkoutProvider>(context,
                                 listen: false)
                             .fetchReadyWorkouts(userId),
+                        // Call the method to delete past scheduled workouts
+                        Provider.of<ScheduledWorkoutsProvider>(context,
+                                listen: false)
+                            .deletePastScheduledWorkouts(),
                       });
                   return Padding(
                     padding: const EdgeInsets.fromLTRB(16, 16, 16, 10),
@@ -305,17 +334,22 @@ class _HomeScreenState extends State<HomeScreen> {
                             ),
                             const SizedBox(height: 40),
                             ElevatedButton(
-                              onPressed: () => Navigator.of(context)
-                                  .pushNamed('/workouts', arguments: userId),
+                              onPressed: () => Navigator.of(context).pushNamed(
+                                '/workouts',
+                                arguments: userId,
+                              ),
                               style: ElevatedButton.styleFrom(
-                                foregroundColor: Colors.black,
-                                backgroundColor: Colors.yellow,
+                                foregroundColor: hasScheduledWorkout
+                                    ? Colors.white
+                                    : Colors.black,
+                                backgroundColor: hasScheduledWorkout
+                                    ? Colors.lightBlue
+                                    : Colors.yellow,
                                 padding:
                                     const EdgeInsets.symmetric(vertical: 20),
                                 minimumSize: const Size(double.infinity, 50),
                                 shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(
-                                      8), // slightly rounded edges
+                                  borderRadius: BorderRadius.circular(8),
                                 ),
                               ),
                               child: const Text('START WORKOUT'),
