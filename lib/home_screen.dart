@@ -27,12 +27,18 @@ class _HomeScreenState extends State<HomeScreen> {
   late String userId = '';
   Map<String, int> stats = {};
   late List<ScheduledWorkout>? todayScheduledWorkouts = [];
+  bool _isLoadingUsername = true;
+  bool _isLoadingUserId = true;
+  bool _isLoadingWorkouts = true;
+  late WorkoutsProvider workoutsProvider;
 
   @override
   void initState() {
     super.initState();
     _getUsername();
     _waitUserIdAndLoadWorkouts();
+    _loadUserData();
+    _loadWorkouts();
   }
 
   Future<void> _waitUserIdAndLoadWorkouts() async {
@@ -53,6 +59,31 @@ class _HomeScreenState extends State<HomeScreen> {
     } catch (e) {
       print('Error fetching userId: $e');
       // Handle the error
+    }
+  }
+
+  Future<void> _loadUserData() async {
+    try {
+      // Get username
+      await _getUsername();
+
+      // Get user email and ID
+      final email = await getUserEmail();
+      final fetchedUserId = await fetchUserIdByUsername(email);
+
+      setState(() {
+        userId = fetchedUserId;
+        _isLoadingUserId = false;
+      });
+
+      // Fetch workout data once the user ID is available
+      await _fetchWorkoutsData(fetchedUserId);
+    } catch (e) {
+      print('Error loading user data: $e');
+      setState(() {
+        _isLoadingUserId = false;
+        _isLoadingWorkouts = false;
+      });
     }
   }
 
@@ -88,6 +119,37 @@ class _HomeScreenState extends State<HomeScreen> {
       _calculateWorkoutStats(groupedWorkouts);
     });
     print('home _goupedWorkouts: $groupedWorkouts');
+  }
+
+  Future<void> _fetchWorkoutsData(String userId) async {
+    DateTime now = DateTime.now();
+    DateTime startOfWeek = DateTime(now.year, now.month, now.day)
+        .subtract(Duration(days: now.weekday - 1))
+        .add(Duration(days: _selectedWeek * 7));
+    DateTime endOfWeek = startOfWeek.add(const Duration(days: 6));
+
+    // Fetch data from providers
+    final exercisesProvider =
+        Provider.of<ExercisesProvider>(context, listen: false);
+    workoutsProvider = Provider.of<WorkoutsProvider>(context, listen: false);
+    final scheduledWorkoutsProvider =
+        Provider.of<ScheduledWorkoutsProvider>(context, listen: false);
+    final readyWorkoutProvider =
+        Provider.of<ReadyWorkoutProvider>(context, listen: false);
+
+    await Future.wait([
+      exercisesProvider.fetchExercises(),
+      workoutsProvider.fetchWorkouts(userId),
+      scheduledWorkoutsProvider.fetchScheduledWorkouts(userId),
+      readyWorkoutProvider.fetchReadyWorkouts(userId),
+      scheduledWorkoutsProvider.deletePastScheduledWorkouts(),
+    ]);
+
+    setState(() {
+      _groupedWorkouts =
+          readyWorkoutProvider.getReadyWorkoutsByDay(startOfWeek, endOfWeek);
+      _isLoadingWorkouts = false;
+    });
   }
 
   Future<void> _checkTodayScheduledWorkout() async {
@@ -143,6 +205,7 @@ class _HomeScreenState extends State<HomeScreen> {
     String username = await AuthService().getUsername();
     setState(() {
       _username = username;
+      _isLoadingUsername = false;
     });
   }
 
@@ -229,142 +292,153 @@ class _HomeScreenState extends State<HomeScreen> {
           ),
         ],
       ),
-      body: FutureBuilder<String>(
+      body: /* FutureBuilder<String>(
         future: getUserEmail(),
         builder: (context, snapshot) {
-          if (snapshot.connectionState == ConnectionState.waiting) {
-            return const Center(child: CircularProgressIndicator());
-          } else if (snapshot.hasError) {
-            return Center(child: Text('Error: ${snapshot.error}'));
-          } else {
-            final email = snapshot.data!;
-            return FutureBuilder<String>(
-              future: fetchUserIdByUsername(email),
-              builder: (context, idSnapshot) {
-                if (idSnapshot.connectionState == ConnectionState.waiting) {
-                  return const Center(child: CircularProgressIndicator());
-                } else if (idSnapshot.hasError) {
-                  return Center(child: Text('Error: ${idSnapshot.error}'));
-                } else {
-                  userId = idSnapshot.data!;
+          //  if (snapshot.connectionState == ConnectionState.waiting) {
+          // return const Center(child: CircularProgressIndicator());
+          //    } else if (snapshot.hasError) {
+          //     return Center(child: Text('Error: ${snapshot.error}'));
+          //   } else {
+          final email = snapshot.data!;
+          return FutureBuilder<String>(
+            future: fetchUserIdByUsername(email),
+            builder: (context, idSnapshot) {
+              //   if (idSnapshot.connectionState == ConnectionState.waiting) {
+              //     return const Center(child: CircularProgressIndicator());
+              //  } else if (idSnapshot.hasError) {
+              //    return Center(child: Text('Error: ${idSnapshot.error}'));
+              //   } else {
+              userId = idSnapshot.data!;
+              _isLoadingUserId = false;
 
-                  Future.microtask(() => {
-                        Provider.of<ExercisesProvider>(context, listen: false)
-                            .fetchExercises(),
-                        Provider.of<WorkoutsProvider>(context, listen: false)
-                            .fetchWorkouts(userId),
-                        Provider.of<ScheduledWorkoutsProvider>(context,
-                                listen: false)
-                            .fetchScheduledWorkouts(userId),
-                        Provider.of<ReadyWorkoutProvider>(context,
-                                listen: false)
-                            .fetchReadyWorkouts(userId),
-                        // Call the method to delete past scheduled workouts
-                        Provider.of<ScheduledWorkoutsProvider>(context,
-                                listen: false)
-                            .deletePastScheduledWorkouts(),
-                      });
-                  return Padding(
-                    padding: const EdgeInsets.fromLTRB(16, 16, 16, 10),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          formattedDate,
-                          style: const TextStyle(fontSize: 16),
-                        ),
-                        Text(
-                          'Welcome, $_username 🔥',
-                          style: const TextStyle(fontSize: 20),
-                        ),
-                        const SizedBox(height: 40),
-                        DynamicTiles(
-                          groupedWorkouts: _groupedWorkouts,
-                          stats: stats,
-                          userId: userId,
-                        ),
-                        const SizedBox(height: 40),
-                        Column(
-                          children: [
-                            ElevatedButton.icon(
-                              onPressed: () => Navigator.of(context)
-                                  .pushNamed('/planner', arguments: userId),
-                              style: ElevatedButton.styleFrom(
-                                foregroundColor: Colors.yellow,
-                                backgroundColor: Colors.black,
-                                side: const BorderSide(
-                                    color: Colors.yellow, width: 2),
-                                padding:
-                                    const EdgeInsets.symmetric(vertical: 16),
-                                minimumSize: const Size(double.infinity, 50),
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(
-                                      8), // slightly rounded edges
-                                ),
-                              ),
-                              icon: const Icon(
-                                Icons.edit_document,
-                                color: Colors.yellow,
-                              ),
-                              label: const Text('PLANNER'),
-                            ),
-                            const SizedBox(height: 10),
-                            ElevatedButton.icon(
-                              onPressed: () => Navigator.of(context).pushNamed(
-                                  '/workoutsList',
-                                  arguments: userId),
-                              style: ElevatedButton.styleFrom(
-                                foregroundColor: Colors.yellow,
-                                backgroundColor: Colors.black,
-                                side: const BorderSide(
-                                    color: Colors.yellow, width: 2),
-                                padding:
-                                    const EdgeInsets.symmetric(vertical: 16),
-                                minimumSize: const Size(double.infinity, 50),
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(
-                                      8), // slightly rounded edges
-                                ),
-                              ),
-                              icon: const Icon(
-                                Icons.list,
-                                color: Colors.yellow,
-                              ),
-                              label: const Text('My Workouts'),
-                            ),
-                            const SizedBox(height: 40),
-                            ElevatedButton(
-                              onPressed: () => Navigator.of(context).pushNamed(
-                                '/workouts',
-                                arguments: userId,
-                              ),
-                              style: ElevatedButton.styleFrom(
-                                foregroundColor: hasScheduledWorkout
-                                    ? Colors.white
-                                    : Colors.black,
-                                backgroundColor: hasScheduledWorkout
-                                    ? Colors.lightBlue
-                                    : Colors.yellow,
-                                padding:
-                                    const EdgeInsets.symmetric(vertical: 20),
-                                minimumSize: const Size(double.infinity, 50),
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(8),
-                                ),
-                              ),
-                              child: const Text('START WORKOUT'),
-                            ),
-                          ],
-                        ),
-                      ],
+              Future.microtask(() => {
+                    Provider.of<ExercisesProvider>(context, listen: false)
+                        .fetchExercises(),
+                    Provider.of<WorkoutsProvider>(context, listen: false)
+                        .fetchWorkouts(userId),
+                    Provider.of<ScheduledWorkoutsProvider>(context,
+                            listen: false)
+                        .fetchScheduledWorkouts(userId),
+                    Provider.of<ReadyWorkoutProvider>(context, listen: false)
+                        .fetchReadyWorkouts(userId),
+                    // Call the method to delete past scheduled workouts
+                    Provider.of<ScheduledWorkoutsProvider>(context,
+                            listen: false)
+                        .deletePastScheduledWorkouts(),
+                  });
+              _isLoadingWorkouts = false;
+              return */
+          Padding(
+        padding: const EdgeInsets.fromLTRB(16, 16, 16, 10),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              formattedDate,
+              style: const TextStyle(fontSize: 16),
+            ),
+            _isLoadingUsername
+                ? const Center(child: CircularProgressIndicator())
+                : Text(
+                    'Welcome, $_username 🔥',
+                    style: const TextStyle(fontSize: 20),
+                  ),
+            const SizedBox(height: 40),
+            /*   _isLoadingUserId || _isLoadingWorkouts
+                ? const Center(
+                    child: CircularProgressIndicator(),
+                  )
+                : */
+            DynamicTiles(
+              groupedWorkouts: _groupedWorkouts,
+              stats: stats,
+              userId: userId,
+            ),
+            const SizedBox(height: 40),
+            Column(
+              children: [
+                ElevatedButton.icon(
+                  onPressed: _isLoadingWorkouts
+                      ? null
+                      : () => Navigator.of(context).pushNamed(
+                            '/planner',
+                            arguments: userId,
+                          ),
+                  style: ElevatedButton.styleFrom(
+                    foregroundColor: Colors.yellow,
+                    backgroundColor: Colors.black,
+                    side: const BorderSide(color: Colors.yellow, width: 2),
+                    padding: const EdgeInsets.symmetric(vertical: 16),
+                    minimumSize: const Size(double.infinity, 50),
+                    shape: RoundedRectangleBorder(
+                      borderRadius:
+                          BorderRadius.circular(8), // slightly rounded edges
                     ),
-                  );
-                }
-              },
-            );
-          }
-        },
+                  ),
+                  icon: const Icon(
+                    Icons.edit_document,
+                    color: Colors.yellow,
+                  ),
+                  label: const Text('PLANNER'),
+                ),
+                const SizedBox(height: 10),
+                ElevatedButton.icon(
+                  onPressed: _isLoadingWorkouts
+                      ? null
+                      : () => Navigator.of(context)
+                          .pushNamed('/workoutsList', arguments: userId),
+                  style: ElevatedButton.styleFrom(
+                    foregroundColor: Colors.yellow,
+                    backgroundColor: Colors.black,
+                    side: const BorderSide(color: Colors.yellow, width: 2),
+                    padding: const EdgeInsets.symmetric(vertical: 16),
+                    minimumSize: const Size(double.infinity, 50),
+                    shape: RoundedRectangleBorder(
+                      borderRadius:
+                          BorderRadius.circular(8), // slightly rounded edges
+                    ),
+                  ),
+                  icon: const Icon(
+                    Icons.list,
+                    color: Colors.yellow,
+                  ),
+                  label: const Text('My Workouts'),
+                ),
+                const SizedBox(height: 40),
+                ElevatedButton(
+                  onPressed: _isLoadingWorkouts ||
+                          workoutsProvider.workouts!.isEmpty ||
+                          userId.length < 3
+                      ? null
+                      : () => Navigator.of(context).pushNamed(
+                            '/workouts',
+                            arguments: userId,
+                          ),
+                  style: ElevatedButton.styleFrom(
+                    foregroundColor:
+                        hasScheduledWorkout ? Colors.white : Colors.black,
+                    backgroundColor:
+                        hasScheduledWorkout ? Colors.lightBlue : Colors.yellow,
+                    padding: const EdgeInsets.symmetric(vertical: 20),
+                    minimumSize: const Size(double.infinity, 50),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                  ),
+                  child: const Text('START WORKOUT'),
+                ),
+              ],
+            ),
+          ],
+        ),
       ),
+      //  }
+      //     },
     );
+    //    }
+    //    },
+    //   ),
+    //   );
   }
 }

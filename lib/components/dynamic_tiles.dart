@@ -42,44 +42,59 @@ class _DynamicTilesState extends State<DynamicTiles> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.center,
       children: [
-        GestureDetector(
-          behavior: HitTestBehavior.translucent,
-          onTap: () {
-            if (_selectedIndex == 0) {
-              Navigator.of(context)
-                  .pushNamed('/schedule', arguments: widget.userId);
-            } else {
-              Navigator.of(context).pushNamed(_routes[_selectedIndex]);
-            }
-          },
-          onHorizontalDragEnd: (details) {
-            if (details.primaryVelocity! < 0) {
-              _onSwipeLeft();
-            } else if (details.primaryVelocity! > 0) {
-              _onSwipeRight();
-            }
-          },
-          child: Container(
-            height: MediaQuery.of(context).size.height * 0.30,
-            width: double.infinity,
-            decoration: BoxDecoration(
-              shape: BoxShape.rectangle,
-              color: Colors.grey[800],
-              borderRadius: BorderRadius.circular(10),
-            ),
-            child: Center(
-              child: _selectedIndex == 1
-                  ? WeeklyBarChart(
-                      groupedWorkouts:
-                          widget.groupedWorkouts) // Use the WeeklyBarChart
+        widget.groupedWorkouts.isEmpty &&
+                widget.userId.isEmpty &&
+                widget.stats.isEmpty
+            ? Container(
+                height: MediaQuery.of(context).size.height * 0.30,
+                width: double.infinity,
+                decoration: BoxDecoration(
+                  shape: BoxShape.rectangle,
+                  color: Colors.grey[800],
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                child: const Center(
+                  child: CircularProgressIndicator(),
+                ))
+            : GestureDetector(
+                behavior: HitTestBehavior.translucent,
+                onTap: () {
+                  if (_selectedIndex == 0) {
+                    Navigator.of(context)
+                        .pushNamed('/schedule', arguments: widget.userId);
+                  } else {
+                    Navigator.of(context).pushNamed(_routes[_selectedIndex]);
+                  }
+                },
+                onHorizontalDragEnd: (details) {
+                  if (details.primaryVelocity! < 0) {
+                    _onSwipeLeft();
+                  } else if (details.primaryVelocity! > 0) {
+                    _onSwipeRight();
+                  }
+                },
+                child: Container(
+                  height: MediaQuery.of(context).size.height * 0.30,
+                  width: double.infinity,
+                  decoration: BoxDecoration(
+                    shape: BoxShape.rectangle,
+                    color: Colors.grey[800],
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  child: Center(
+                    child: _selectedIndex == 1
+                        ? WeeklyBarChart(
+                            groupedWorkouts: widget
+                                .groupedWorkouts) // Use the WeeklyBarChart
 
-                  : _selectedIndex == 2
-                      ? WeeklyMetrics(
-                          stats: widget.stats) // Show WeeklyMetrics for index 2
-                      : WeeklyCalendar(userId: widget.userId),
-            ),
-          ),
-        ),
+                        : _selectedIndex == 2
+                            ? WeeklyMetrics(
+                                stats: widget
+                                    .stats) // Show WeeklyMetrics for index 2
+                            : WeeklyCalendar(userId: widget.userId),
+                  ),
+                ),
+              ),
         const SizedBox(height: 20),
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceEvenly,

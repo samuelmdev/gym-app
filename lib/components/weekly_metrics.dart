@@ -6,6 +6,7 @@ class WeeklyMetrics extends StatelessWidget {
 
   const WeeklyMetrics({super.key, required this.stats});
   bool get hasData {
+    if (stats.isEmpty) return false;
     // Check if all stats are zero
     return stats['duration'] > 0 ||
         stats['weightLifted'] > 0 ||
@@ -16,7 +17,9 @@ class WeeklyMetrics extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return hasData ? _buildMetricsContent() : _buildNoMetricsMessage();
+    return stats.isEmpty
+        ? _buildNoMetricsMessage()
+        : (hasData ? _buildMetricsContent() : _buildNoMetricsMessage());
   }
 
   Widget _buildNoMetricsMessage() {

@@ -17,7 +17,7 @@ class WorkoutScreen extends StatefulWidget {
 
 class _WorkoutScreenState extends State<WorkoutScreen> {
   Workout? _selectedWorkout;
-  List<ScheduledWorkout>? _scheduledWorkouts;
+  List<ScheduledWorkout>? _scheduledWorkouts = [];
   late String userId;
   late List<Workout>? workouts;
   bool skippedScheduled = false;
@@ -28,7 +28,7 @@ class _WorkoutScreenState extends State<WorkoutScreen> {
     super.initState();
 
     // Show the dialog if there are scheduled workouts
-    if (!skippedScheduled) {
+    if (!skippedScheduled && _scheduledWorkouts!.isNotEmpty) {
       Future.microtask(() => _showScheduledWorkoutsDialog(context));
     }
   }
