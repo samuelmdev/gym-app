@@ -11,6 +11,7 @@ import 'package:gym_app/schedule_screen.dart';
 import 'package:gym_app/sets_planner.dart';
 import 'package:provider/provider.dart';
 import 'amplifyconfiguration.dart';
+import 'overview_screen.dart';
 import 'planner_screen.dart';
 import 'profile_screen.dart';
 import 'progress_screen.dart';
@@ -153,6 +154,7 @@ class _MyAppState extends State<MyApp> {
         '/workoutsList': (context) => const WorkoutList(),
         '/planner': (context) => const PlannerScreen(),
         '/progress': (context) => const ProgressScreen(),
+        '/overview': (context) => const OverviewScreen(),
         '/profile': (context) => const ProfileScreen(),
         '/setsplanner': (context) => SetsPlanner(
             selectedExercises:

@@ -60,11 +60,12 @@ class WorkoutsProvider with ChangeNotifier {
   Future<void> deleteExistingWorkout(String workoutId) async {
     try {
       // Use the service instance to delete the workout
-      bool success = await _workoutService.deleteWorkout(workoutId);
+      bool success = await WorkoutService.deleteWorkout(workoutId);
 
       if (success) {
         // If the workout is deleted successfully, remove it from the provider's list
         removeWorkout(workoutId);
+        notifyListeners();
       } else {
         print('Failed to delete workout.');
       }

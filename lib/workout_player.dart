@@ -168,9 +168,7 @@ class _WorkoutPlayerState extends State<WorkoutPlayer> {
                                   ),
                                 ),
                               ),
-                              subtitle: Text(isCompleted
-                                  ? '${completedWorkout.sets!.where((sets) => sets.exercisesId == set.exercisesId).toList().length} Sets'
-                                  : '${set.reps.length} Sets'),
+                              subtitle: Text('${set.reps.length} Sets'),
                             );
                           },
                         ),
@@ -190,12 +188,15 @@ class _WorkoutPlayerState extends State<WorkoutPlayer> {
                             side: const BorderSide(
                                 color: Colors.yellow, width: 2.0),
                             shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(
-                                  8), // slightly rounded edges
+                              borderRadius: BorderRadius.circular(8),
                             ),
                           ),
                           onPressed: () {
-                            // Handle Add exercise action
+                            final exercises = Provider.of<ExercisesProvider>(
+                                    context,
+                                    listen: false)
+                                .exercises;
+
                             showModalBottomSheet(
                               context: context,
                               isScrollControlled: true,
@@ -203,12 +204,14 @@ class _WorkoutPlayerState extends State<WorkoutPlayer> {
                                 return FractionallySizedBox(
                                   heightFactor: 0.7,
                                   child: AddExerciseModal(
-                                      workoutId: widget.workout.id),
+                                    workoutId: widget.workout.id,
+                                    exercises:
+                                        exercises, // Pass the list of exercises here
+                                  ),
                                 );
                               },
                             ).then((newSet) {
                               if (newSet != null) {
-                                // Handle the new set added by the modal
                                 setState(() {
                                   setsProvider.addSet(newSet);
                                 });
@@ -236,7 +239,7 @@ class _WorkoutPlayerState extends State<WorkoutPlayer> {
                                   8), // slightly rounded edges
                             ),
                           ),
-                          onPressed: () {
+                          onPressed: () async {
                             final remainingExercises = sets!.length -
                                 completedWorkout.exercises!.length;
                             if (remainingExercises == 0 &&
@@ -257,7 +260,11 @@ class _WorkoutPlayerState extends State<WorkoutPlayer> {
                                 ),
                               );
                             } else if (remainingExercises == sets.length) {
-                              _showBackDialog();
+                              final bool shouldPop = await _showBackDialog();
+                              if (context.mounted && shouldPop) {
+                                Navigator.pop(
+                                    context); // Pop back to the previous screen
+                              }
                             } else {
                               // Handle End Workout action if necessary
                               showDialog(

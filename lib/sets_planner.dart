@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:gym_app/models/exercise.dart'; // Import your Exercise model
-import 'package:gym_app/models/set.dart';
 import 'package:provider/provider.dart';
 import 'components/add_exercise_modal.dart';
 import 'components/confirm_workout_dialog.dart';

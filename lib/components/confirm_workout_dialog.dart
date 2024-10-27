@@ -86,11 +86,13 @@ class _ConfirmWorkoutDialogState extends State<ConfirmWorkoutDialog> {
               plannedWorkoutProvider.plannedWorkout?.name = workoutName;
 
               if (plannedWorkoutProvider.plannedWorkout!.id.isEmpty) {
-                // If the workout already has an ID, it means we're editing an existing workout
-                plannedWorkoutProvider.updateExistingWorkout();
-              } else {
-                // Otherwise, we're creating a new workout
+                // If the workout doesn't have an ID, we'll create new one
+                print('saving workout');
                 plannedWorkoutProvider.saveNewWorkout();
+              } else {
+                // Otherwise, we're updating workout
+                print('updating workout');
+                plannedWorkoutProvider.updateExistingWorkout();
               }
               Navigator.of(context).pushAndRemoveUntil(
                   MaterialPageRoute(
