@@ -21,6 +21,9 @@ class _PlannerScreenState extends State<PlannerScreen> {
     plannedWorkoutProvider =
         Provider.of<PlannedWorkoutProvider>(context, listen: false);
 
+    //  print(
+    //      'planned workout name: ${plannedWorkoutProvider!.plannedWorkout!.name}');
+    // print('userId plannerissa: $userId');
     // Determine if it's a new workout or editing an existing one
     if (plannedWorkoutProvider!.plannedWorkout != null) {
       /* New workout: Initialize an empty workout
@@ -31,7 +34,6 @@ class _PlannerScreenState extends State<PlannerScreen> {
     }
 
     // Handle any specific workout type logic
-    _handleWorkoutType();
   }
 
   Map<String, bool> selectedTypes = {};
@@ -48,6 +50,7 @@ class _PlannerScreenState extends State<PlannerScreen> {
     final exercises = Provider.of<ExercisesProvider>(context).exercises;
     userId = ModalRoute.of(context)!.settings.arguments as String;
 
+    print('user ID in planner: $userId');
     // Initialize filters only once after fetching exercises
     if (selectedTypes.isEmpty && selectedTargets.isEmpty) {
       selectedTypes = {
@@ -74,6 +77,7 @@ class _PlannerScreenState extends State<PlannerScreen> {
       });
     }
     _filterExercises(selectedExercises);
+    _handleWorkoutType();
   }
 
   void _filterExercises(List<Exercise> exercises) {

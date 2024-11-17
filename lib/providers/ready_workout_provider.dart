@@ -6,11 +6,13 @@ import '../services/ready_workout_service.dart';
 
 class ReadyWorkoutProvider extends ChangeNotifier {
   List<ReadyWorkout> _readyWorkouts = [];
-  bool _isLoading = false;
+  bool _isLoading = true;
+  bool _handlingDailyData = true;
   String? _errorMessage;
 
   List<ReadyWorkout> get readyWorkouts => _readyWorkouts;
   bool get isLoading => _isLoading;
+  bool get handlingDailyData => _handlingDailyData;
   String? get errorMessage => _errorMessage;
 
   Future<void> fetchReadyWorkouts(String userID) async {
@@ -36,14 +38,25 @@ class ReadyWorkoutProvider extends ChangeNotifier {
   }
 
   List<ReadyWorkout> getReadyWorkoutsByDate(DateTime date) {
-    print('getReadyWorkoutsByDate called $date');
-    return _readyWorkouts.where((workout) {
+    Future.microtask(() {
+      _handlingDailyData = true;
+      notifyListeners();
+    });
+
+    final filteredWorkouts = _readyWorkouts.where((workout) {
       DateTime startTimestamp = workout.startTimestamp!.toDateTime();
       print(startTimestamp);
       return startTimestamp.year == date.year &&
           startTimestamp.month == date.month &&
           startTimestamp.day == date.day;
     }).toList();
+
+    Future.microtask(() {
+      _handlingDailyData = false;
+      notifyListeners();
+    });
+
+    return filteredWorkouts;
   }
 
   List<ReadyWorkout> getReadyWorkoutsByTimeFrame(DateTime start, DateTime end) {

@@ -61,7 +61,7 @@ class _WorkoutListState extends State<WorkoutList> {
           final workouts =
               workoutProvider.workouts; // Fetch workouts from the provider
 
-          if (workouts!.isEmpty) {
+          if (workouts == null) {
             return const Center(child: CircularProgressIndicator());
           }
 

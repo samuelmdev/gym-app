@@ -1,29 +1,33 @@
-import 'package:flutter/material.dart';
-import 'package:table_calendar/table_calendar.dart';
 import '../services/schedule_workout_service.dart';
 import '../models/scheduled_workout.dart';
+import 'base_provider.dart';
 
-class ScheduledWorkoutsProvider extends ChangeNotifier {
+class ScheduledWorkoutsProvider extends BaseProvider {
   List<ScheduledWorkout> _scheduledWorkouts = [];
   bool _isLoading = false;
   String? _errorMessage;
 
   List<ScheduledWorkout> get scheduledWorkouts => _scheduledWorkouts;
   bool get isLoading => _isLoading;
+  @override
   String? get errorMessage => _errorMessage;
 
   Future<void> fetchScheduledWorkouts(String userID) async {
     _isLoading = true;
     _errorMessage = null;
     notifyListeners();
+    setMainLoading(true);
+    setErrorMessage(null);
 
     try {
       _scheduledWorkouts =
           await ScheduledWorkoutService.fetchScheduledWorkoutsByUserID(userID);
     } catch (e) {
       _errorMessage = 'Failed to fetch scheduled workouts';
+      setErrorMessage('Failed to fetch scheduled workouts');
     } finally {
       _isLoading = false;
+      setMainLoading(false);
       notifyListeners();
     }
   }

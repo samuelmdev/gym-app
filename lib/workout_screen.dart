@@ -164,109 +164,128 @@ class _WorkoutScreenState extends State<WorkoutScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(title: const Text('Workouts')),
-      body: workouts == null || workouts!.isEmpty
-          ? const Center(child: CircularProgressIndicator())
-          : Column(
-              children: [
-                const SizedBox(height: 20),
-                ElevatedButton(
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.black,
-                    foregroundColor: Colors.yellow,
-                    side: const BorderSide(color: Colors.yellow, width: 2.0),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                  ),
-                  onPressed: () {
-                    Workout newWorkout =
-                        Workout(id: '', name: '', type: '', userId: userId);
-                    Provider.of<CompletedWorkoutProvider>(context,
-                            listen: false)
-                        .startWorkout(userId, newWorkout);
-                    Navigator.of(context).push(
-                      MaterialPageRoute(
-                        builder: (context) =>
-                            WorkoutPlayer(workout: newWorkout),
-                      ),
-                    );
-                  },
-                  child: const Text('Start new empty workout'),
-                ),
-                const SizedBox(height: 30),
-                const Text(
-                  'Or',
-                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-                  textAlign: TextAlign.center,
-                ),
-                const SizedBox(height: 10),
-                const Text(
-                  'Select Workout',
-                  style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
-                  textAlign: TextAlign.center,
-                ),
-                Expanded(
-                  child: ListView.builder(
-                    itemCount: workouts?.length,
-                    itemBuilder: (context, index) {
-                      return Padding(
-                        padding: const EdgeInsets.symmetric(
-                            horizontal: 16.0, vertical: 8.0),
-                        child: ElevatedButton(
-                          onPressed: () {
-                            setState(() {
-                              _selectedWorkout = workouts![index];
-                            });
-                          },
-                          style: ElevatedButton.styleFrom(
-                            foregroundColor:
-                                _selectedWorkout == workouts![index]
-                                    ? Colors.yellow
-                                    : Colors.white,
-                            backgroundColor: Colors.black,
-                            side: BorderSide(
-                              color: _selectedWorkout == workouts![index]
-                                  ? Colors.yellow
-                                  : Colors.transparent,
-                              width: 2.0,
-                            ),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(8),
-                            ),
-                          ),
-                          child: Text(workouts![index].name),
-                        ),
-                      );
-                    },
-                  ),
-                ),
-                Padding(
-                  padding: const EdgeInsets.all(16.0),
-                  child: ElevatedButton.icon(
-                    onPressed: _selectedWorkout == null
-                        ? null
-                        : () {
-                            Provider.of<CompletedWorkoutProvider>(context,
-                                    listen: false)
-                                .startWorkout(userId, _selectedWorkout!);
-                            Navigator.of(context).push(
-                              MaterialPageRoute(
-                                builder: (context) =>
-                                    WorkoutPlayer(workout: _selectedWorkout!),
-                              ),
-                            );
-                          },
+      body: workouts == null
+          ? const Center(child: CircularProgressIndicator()) // Loading state
+          : Center(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: [
+                  const SizedBox(height: 20),
+                  ElevatedButton(
                     style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.black,
+                      foregroundColor: Colors.yellow,
+                      side: const BorderSide(color: Colors.yellow, width: 2.0),
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(8),
                       ),
                     ),
-                    icon: const Icon(Icons.play_arrow, color: Colors.black),
-                    label: const Text('START'),
+                    onPressed: () {
+                      Workout newWorkout =
+                          Workout(id: '', name: '', type: '', userId: userId);
+                      Provider.of<CompletedWorkoutProvider>(context,
+                              listen: false)
+                          .startWorkout(userId, newWorkout);
+                      Navigator.of(context).push(
+                        MaterialPageRoute(
+                          builder: (context) =>
+                              WorkoutPlayer(workout: newWorkout),
+                        ),
+                      );
+                    },
+                    child: const Text(
+                      'Start new empty workout',
+                      style: TextStyle(
+                        fontSize: 18,
+                      ),
+                      textAlign: TextAlign.center,
+                    ),
                   ),
-                ),
-                const SizedBox(height: 20),
-              ],
+                  const SizedBox(height: 30),
+                  const Text(
+                    'Or',
+                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                    textAlign: TextAlign.center,
+                  ),
+                  const SizedBox(height: 10),
+                  const Text(
+                    'Select Workout',
+                    style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+                    textAlign: TextAlign.center,
+                  ),
+                  const SizedBox(height: 10),
+                  if (workouts!.isEmpty)
+                    const Expanded(
+                      child: Text(
+                        'No workouts yet',
+                        style: TextStyle(fontSize: 18, color: Colors.grey),
+                        textAlign: TextAlign.center,
+                      ),
+                    )
+                  else
+                    Expanded(
+                      child: ListView.builder(
+                        itemCount: workouts!.length,
+                        itemBuilder: (context, index) {
+                          return Padding(
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 16.0, vertical: 8.0),
+                            child: ElevatedButton(
+                              onPressed: () {
+                                setState(() {
+                                  _selectedWorkout = workouts![index];
+                                });
+                              },
+                              style: ElevatedButton.styleFrom(
+                                foregroundColor:
+                                    _selectedWorkout == workouts![index]
+                                        ? Colors.yellow
+                                        : Colors.white,
+                                backgroundColor: Colors.black,
+                                side: BorderSide(
+                                  color: _selectedWorkout == workouts![index]
+                                      ? Colors.yellow
+                                      : Colors.transparent,
+                                  width: 2.0,
+                                ),
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(8),
+                                ),
+                              ),
+                              child: Text(workouts![index].name),
+                            ),
+                          );
+                        },
+                      ),
+                    ),
+                  Padding(
+                    padding: const EdgeInsets.all(16.0),
+                    child: ElevatedButton.icon(
+                      onPressed: _selectedWorkout == null
+                          ? null
+                          : () {
+                              Provider.of<CompletedWorkoutProvider>(context,
+                                      listen: false)
+                                  .startWorkout(userId, _selectedWorkout!);
+                              Navigator.of(context).push(
+                                MaterialPageRoute(
+                                  builder: (context) =>
+                                      WorkoutPlayer(workout: _selectedWorkout!),
+                                ),
+                              );
+                            },
+                      style: ElevatedButton.styleFrom(
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                      ),
+                      icon: const Icon(Icons.play_arrow, color: Colors.black),
+                      label: const Text('START'),
+                    ),
+                  ),
+                  const SizedBox(height: 20),
+                ],
+              ),
             ),
     );
   }

@@ -79,3 +79,49 @@ Future<String> getUserEmail() async {
     return '';
   }
 }
+
+class UserService {
+  Future<void> addUserToDatabase({required String email}) async {
+    const String createUserMutation = '''
+    mutation CreateUser(\$input: CreateUserInput!) {
+      createUser(input: \$input) {
+        id
+        username
+        weightlifted
+        bodyweightreps
+      }
+    }
+    ''';
+
+    print('Adding user to database with email: $email');
+
+    try {
+      var operation = Amplify.API.mutate(
+        request: GraphQLRequest<String>(
+          document: createUserMutation,
+          variables: {
+            'input': {
+              'username': email,
+              'weightlifted': 0,
+              'bodyweightreps': 0,
+              // Add other fields to save in the user object
+            },
+          },
+        ),
+      );
+
+      var response = await operation.response;
+      print('GraphQL Response: ${response.data}');
+
+      if (response.errors.isNotEmpty) {
+        print('GraphQL Errors: ${response.errors}');
+        throw Exception('Failed to create user');
+      } else {
+        print('User added to database: ${response.data}');
+      }
+    } catch (e) {
+      print('Error adding user to database: $e');
+      throw e;
+    }
+  }
+}

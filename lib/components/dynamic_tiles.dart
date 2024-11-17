@@ -8,12 +8,16 @@ class DynamicTiles extends StatefulWidget {
   final Map<DateTime, List<ReadyWorkout>> groupedWorkouts;
   final Map<String, dynamic> stats;
   final String userId;
+  final bool loadingComplete;
+  final bool isLoadingStats;
 
   const DynamicTiles(
       {super.key,
       required this.groupedWorkouts,
       required this.stats,
-      required this.userId});
+      required this.userId,
+      required this.loadingComplete,
+      required this.isLoadingStats});
 
   @override
   _DynamicTilesState createState() => _DynamicTilesState();
@@ -42,9 +46,9 @@ class _DynamicTilesState extends State<DynamicTiles> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.center,
       children: [
-        widget.groupedWorkouts.isEmpty &&
+        !widget.loadingComplete &&
                 widget.userId.isEmpty &&
-                widget.stats.isEmpty
+                !widget.isLoadingStats
             ? Container(
                 height: MediaQuery.of(context).size.height * 0.30,
                 width: double.infinity,

@@ -11,6 +11,7 @@ import 'package:gym_app/schedule_screen.dart';
 import 'package:gym_app/sets_planner.dart';
 import 'package:provider/provider.dart';
 import 'amplifyconfiguration.dart';
+import 'initial_check_screen.dart';
 import 'overview_screen.dart';
 import 'planner_screen.dart';
 import 'profile_screen.dart';
@@ -133,12 +134,16 @@ class _MyAppState extends State<MyApp> {
           ),
         ),
       ),
-      home: _isAmplifyConfigured
+      initialRoute: '/',
+      /*  home: _isAmplifyConfigured
           ? (_isSignedIn
               ? const HomeScreen()
               : SignInScreen(authService: AuthService()))
-          : const Scaffold(body: Center(child: CircularProgressIndicator())),
+          : const Scaffold(body: Center(child: CircularProgressIndicator())), */
       routes: {
+        '/': (context) => const InitialCheckScreen(),
+        '/home': (context) => const HomeScreen(),
+        '/signIn': (context) => SignInScreen(authService: AuthService()),
         '/workouts': (context) => const WorkoutScreen(),
         '/workoutPlayer': (context) => WorkoutPlayer(
             workout: ModalRoute.of(context)!.settings.arguments as Workout),
