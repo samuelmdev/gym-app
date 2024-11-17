@@ -30,11 +30,21 @@ class _HomeScreenState extends State<HomeScreen> {
   bool _isLoadingUsername = true;
   bool _isLoadingUserId = true;
   bool _isLoadingWorkouts = true;
+  bool _isLoadingStats = true;
   late WorkoutsProvider workoutsProvider;
+  late ReadyWorkoutProvider readyWorkoutProvider;
+  late ScheduledWorkoutsProvider scheduledWorkoutsProvider;
+  late ExercisesProvider exercisesProvider;
 
   @override
   void initState() {
     super.initState();
+    workoutsProvider = Provider.of<WorkoutsProvider>(context, listen: false);
+    readyWorkoutProvider =
+        Provider.of<ReadyWorkoutProvider>(context, listen: false);
+    scheduledWorkoutsProvider =
+        Provider.of<ScheduledWorkoutsProvider>(context, listen: false);
+    exercisesProvider = Provider.of<ExercisesProvider>(context, listen: false);
     _getUsername();
     _waitUserIdAndLoadWorkouts();
     _loadUserData();
@@ -88,8 +98,6 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   void _loadWorkouts() async {
-    final readyWorkoutProvider =
-        Provider.of<ReadyWorkoutProvider>(context, listen: false);
     readyWorkoutProvider.fetchReadyWorkouts(userId);
     DateTime now = DateTime.now();
     DateTime startOfWeek = DateTime(now.year, now.month, now.day)
@@ -127,15 +135,6 @@ class _HomeScreenState extends State<HomeScreen> {
         .subtract(Duration(days: now.weekday - 1))
         .add(Duration(days: _selectedWeek * 7));
     DateTime endOfWeek = startOfWeek.add(const Duration(days: 6));
-
-    // Fetch data from providers
-    final exercisesProvider =
-        Provider.of<ExercisesProvider>(context, listen: false);
-    workoutsProvider = Provider.of<WorkoutsProvider>(context, listen: false);
-    final scheduledWorkoutsProvider =
-        Provider.of<ScheduledWorkoutsProvider>(context, listen: false);
-    final readyWorkoutProvider =
-        Provider.of<ReadyWorkoutProvider>(context, listen: false);
 
     await Future.wait([
       exercisesProvider.fetchExercises(),
@@ -198,6 +197,7 @@ class _HomeScreenState extends State<HomeScreen> {
         'totalReps': totalReps,
         'bodyweightReps': totalBodyweightReps,
       };
+      _isLoadingStats = false;
     });
   }
 
@@ -351,10 +351,11 @@ class _HomeScreenState extends State<HomeScreen> {
                   )
                 : */
             DynamicTiles(
-              groupedWorkouts: _groupedWorkouts,
-              stats: stats,
-              userId: userId,
-            ),
+                groupedWorkouts: _groupedWorkouts,
+                stats: stats,
+                userId: userId,
+                loadingComplete: readyWorkoutProvider.handlingDailyData,
+                isLoadingStats: _isLoadingStats),
             const SizedBox(height: 40),
             Column(
               children: [
@@ -407,9 +408,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 ),
                 const SizedBox(height: 40),
                 ElevatedButton(
-                  onPressed: _isLoadingWorkouts ||
-                          workoutsProvider.workouts!.isEmpty ||
-                          userId.length < 3
+                  onPressed: _isLoadingWorkouts || userId.length < 3
                       ? null
                       : () => Navigator.of(context).pushNamed(
                             '/workouts',

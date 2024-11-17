@@ -1,38 +1,43 @@
-// lib/sign_in_screen.dart
-
 import 'package:flutter/material.dart';
-import 'home_screen.dart';
 import 'services/auth_service.dart';
-import 'sign_up_screen.dart';
+import 'services/user_service.dart';
+import 'verification_screen.dart';
 
-class SignInScreen extends StatefulWidget {
+class SignUpScreen extends StatefulWidget {
   final AuthService authService;
 
-  const SignInScreen({super.key, required this.authService});
+  const SignUpScreen({super.key, required this.authService});
 
   @override
-  _SignInScreenState createState() => _SignInScreenState();
+  _SignUpScreenState createState() => _SignUpScreenState();
 }
 
-class _SignInScreenState extends State<SignInScreen> {
+class _SignUpScreenState extends State<SignUpScreen> {
   final _usernameController = TextEditingController();
+  final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
   String _errorMessage = '';
-  late String signedInUserName;
+  final userService = UserService();
 
-  void _signIn() async {
+  void _signUp() async {
     String username = _usernameController.text.trim();
+    String email = _emailController.text.trim();
     String password = _passwordController.text.trim();
 
     try {
-      await widget.authService.signIn(username, password);
-      signedInUserName = await widget.authService.getUsername();
+      await widget.authService.signUp(username, email, password);
+      await userService.addUserToDatabase(email: email);
+
       setState(() {
         _errorMessage = '';
       });
+
       Navigator.of(context).pushReplacement(
         MaterialPageRoute(
-          builder: (context) => const HomeScreen(),
+          builder: (context) => VerificationScreen(
+            username: username,
+            authService: widget.authService,
+          ),
         ),
       );
     } catch (e) {
@@ -46,7 +51,7 @@ class _SignInScreenState extends State<SignInScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Sign In'),
+        title: const Text('Sign Up'),
       ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
@@ -58,14 +63,18 @@ class _SignInScreenState extends State<SignInScreen> {
               decoration: const InputDecoration(labelText: 'Username'),
             ),
             TextField(
+              controller: _emailController,
+              decoration: const InputDecoration(labelText: 'Email'),
+            ),
+            TextField(
               controller: _passwordController,
               decoration: const InputDecoration(labelText: 'Password'),
               obscureText: true,
             ),
             const SizedBox(height: 20),
             ElevatedButton(
-              onPressed: _signIn,
-              child: const Text('Sign In'),
+              onPressed: _signUp,
+              child: const Text('Sign Up'),
             ),
             if (_errorMessage.isNotEmpty)
               Padding(
@@ -75,19 +84,6 @@ class _SignInScreenState extends State<SignInScreen> {
                   style: const TextStyle(color: Colors.red),
                 ),
               ),
-            const SizedBox(height: 20),
-            TextButton(
-              onPressed: () {
-                Navigator.of(context).push(
-                  MaterialPageRoute(
-                    builder: (context) =>
-                        SignUpScreen(authService: widget.authService),
-                  ),
-                );
-              },
-              child: const Text('Create a new account'),
-            ),
-            const SizedBox(height: 20),
           ],
         ),
       ),
